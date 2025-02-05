@@ -3,19 +3,20 @@ import { View, Text, TouchableOpacity, Image, StyleSheet, ScrollView, StatusBar 
 import { Icon } from "@rneui/themed";
 import { getStatusBarHeight } from "react-native-status-bar-height";
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 
 
 const ProfileScreen = () => {
   const menuItems = [
-    { id: 1, name: "Personal Information", description: "Edit your information", icon: "person-outline" },
+    { id: 1, name: "Personal Information", description: "Edit your information", icon: "person-outline",route: "Account/personalinfo" },
     { id: 2, name: "Reports", description: "Reported Transactions", icon: "bar-chart-outline" },
-    { id: 3, name: "Settings", description: "Account, notification, location tracking", icon: "settings-outline" },
+    { id: 3, name: "Settings", description: "Account, notification, location tracking", icon: "settings-outline" ,route: "Account/Settings"},
     { id: 4, name: "My Referral", description: "Referrals, commission", icon: "people-outline" },
     { id: 5, name: "Dark Mode", description: "Toggle Dark Mode", icon: "moon-outline" },
-    { id: 6, name: "Help & Support", description: "Help or contact support", icon: "help-circle-outline" },
+    { id: 6, name: "Help & Support", description: "Help or contact support", icon: "help-circle-outline",route: "Account/Support" },
     { id: 7, name: "Legal", description: "Help, Privacy & Security, Legal", icon: "document-text-outline" },
   ];
-
+  const router = useRouter(); // Initialize the router
   return (
      <View style={{paddingTop:getStatusBarHeight(),backgroundColor:'#fff',flex:1}}>
           <StatusBar
@@ -36,7 +37,11 @@ const ProfileScreen = () => {
       {/* Menu Options */}
       <ScrollView style={styles.menuContainer}>
         {menuItems.map((item) => (
-          <TouchableOpacity key={item.id} style={styles.menuItem}>
+          <TouchableOpacity key={item.id} style={styles.menuItem}    onPress={() => {
+          
+              router.push(item.route);
+            
+          }}>
             <Icon name={item.icon} type="ionicon" color="#333" size={24} />
             <View style={styles.menuTextContainer}>
               <Text style={styles.menuTitle}>{item.name}</Text>

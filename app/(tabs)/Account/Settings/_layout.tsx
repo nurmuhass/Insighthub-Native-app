@@ -4,8 +4,9 @@ export default function Layout() {
   return (
     <Stack screenOptions={{ headerShown: false }}>
        <Stack.Screen name="index" options={{ title: 'index' }} />
- <Stack.Screen name="personalinfo" options={{ title: 'personalinfo' }} />
- <Stack.Screen name="Support" options={{ title: 'Support' }} />
+       <Stack.Screen name="Notification" options={{ title: 'Notification' }} />
+       <Stack.Screen name="AccountDeletion" options={{ title: 'AccountDeletion' }} />
+
     </Stack>
   );
 }
