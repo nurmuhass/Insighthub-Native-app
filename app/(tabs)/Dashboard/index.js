@@ -173,8 +173,10 @@ const moreServices = [
 
 <View style={{marginTop:14,marginLeft:8,flexDirection:'row',justifyContent:'space-between',alignItems:'center',marginHorizontal:'2%'}}>
 
-<TouchableOpacity style={{backgroundColor:"#7734eb",padding:10,borderRadius:10,width:'48%',
-  height:50,justifyContent:'center',flexDirection:'row',alignItems:'center'}}>
+<TouchableOpacity style={{backgroundColor:"#7734eb",padding:10,borderRadius:10,
+width:'48%',
+  height:50,justifyContent:'center',
+  flexDirection:'row',alignItems:'center'}} onPress={() => {router.push("Dashboard/FundWallet");}}>
 <Ionicons name="add-circle-outline" size={24} color="#fff" />
 <Text style={{alignSelf:'center',color:'#fff'}}>Fund Wallet</Text>
 </TouchableOpacity>

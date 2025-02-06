@@ -6,15 +6,15 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 
 
-const ProfileScreen = () => {
+const ProfileScreen = () => { 
   const menuItems = [
     { id: 1, name: "Personal Information", description: "Edit your information", icon: "person-outline",route: "Account/personalinfo" },
     { id: 2, name: "Reports", description: "Reported Transactions", icon: "bar-chart-outline" },
     { id: 3, name: "Settings", description: "Account, notification, location tracking", icon: "settings-outline" ,route: "Account/Settings"},
-    { id: 4, name: "My Referral", description: "Referrals, commission", icon: "people-outline" },
+    { id: 4, name: "My Referral", description: "Referrals, commission", icon: "people-outline",route: "Dashboard/Referral" },
     { id: 5, name: "Dark Mode", description: "Toggle Dark Mode", icon: "moon-outline" },
     { id: 6, name: "Help & Support", description: "Help or contact support", icon: "help-circle-outline",route: "Account/Support" },
-    { id: 7, name: "Legal", description: "Help, Privacy & Security, Legal", icon: "document-text-outline" },
+    { id: 7, name: "Legal", description: "Help, Privacy & Security, Legal", icon: "document-text-outline" ,route: "Account/Privacy"},
   ];
   const router = useRouter(); // Initialize the router
   return (
@@ -25,7 +25,11 @@ const ProfileScreen = () => {
     backgroundColor="rgba(255, 255, 255, 0)" // Transparent white color
   />
   <View style={{flexDirection:'row',alignItems:'center',padding:10}}>
-<Ionicons name="chevron-back" size={24} color="black" />
+
+<TouchableOpacity onPress={() => router.back()}>
+        <Ionicons name="arrow-back" size={24} color="#7734eb" />
+  </TouchableOpacity>
+  
   <Text style={{fontSize:20,marginLeft:10,fontWeight:'bold'}}>Profile</Text>
 </View>
       {/* Profile Header */}

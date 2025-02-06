@@ -1,7 +1,9 @@
 import React from "react";
-import { View, Text, TouchableOpacity, Linking, StyleSheet, Image } from "react-native";
+import { View, Text, TouchableOpacity, Linking, StyleSheet, Image, StatusBar } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import { ScrollView } from "react-native";
+import { getStatusBarHeight } from "react-native-status-bar-height";
 
 const SupportScreen = () => {
   const router = useRouter();
@@ -15,21 +17,32 @@ const SupportScreen = () => {
   };
 
   const openWebsite = () => {
-    Linking.openURL("https://yourwebsite.com"); // Replace with your website link
+    Linking.openURL("https://insighthub.com.ng/"); // Replace with your website link
   };
 
   return (
-    <View style={styles.container}>
+       <View style={{paddingTop:getStatusBarHeight(),backgroundColor:'#fff',flex:1,padding:10}}>
+           <StatusBar
+     translucent
+     barStyle="dark-content"
+     backgroundColor="rgba(255, 255, 255, 0)" // Transparent white color
+   />
       {/* Back Button */}
+
+
       <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
         <Ionicons name="arrow-back" size={24} color="#7734eb" />
       </TouchableOpacity>
 
+      <View style={{alignItems:'center'}}>
+
       {/* Title */}
       <Text style={styles.title}>Support</Text>
+      </View>
+
 
       {/* Illustration */}
-      <Image source={require("../assets/support.png")} style={styles.image} />
+      <Image source={require("../../../images/support.png")} style={styles.image} />
 
       {/* Description */}
       <Text style={styles.subtitle}>What assistance can we offer you?</Text>
@@ -39,7 +52,8 @@ const SupportScreen = () => {
       </Text>
 
       {/* Support Options */}
-      <View style={styles.optionsContainer}>
+      <ScrollView contentContainerStyle={styles.optionsContainer} showsVerticalScrollIndicator={false}>
+
         <TouchableOpacity style={styles.optionCard} onPress={openWhatsApp}>
           <Ionicons name="logo-whatsapp" size={40} color="#25D366" />
           <Text style={styles.optionText}>WhatsApp</Text>
@@ -57,7 +71,9 @@ const SupportScreen = () => {
           <Text style={styles.optionText}>Our Website</Text>
           <Text style={styles.optionSubtext}>Visit Now</Text>
         </TouchableOpacity>
-      </View>
+    
+</ScrollView>
+
     </View>
   );
 };
@@ -65,26 +81,23 @@ const SupportScreen = () => {
 export default SupportScreen;
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-    padding: 20,
-    alignItems: "center",
-  },
+
   backButton: {
     alignSelf: "flex-start",
+    marginBottom:0
   },
   title: {
     fontSize: 22,
     fontWeight: "bold",
     color: "#7734eb",
-    marginTop: 20,
+    marginTop: 0,
   },
   image: {
     width: 250,
     height: 150,
     resizeMode: "contain",
     marginVertical: 20,
+    alignSelf:'center'
   },
   subtitle: {
     fontSize: 18,
@@ -99,17 +112,21 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   optionsContainer: {
-    width: "100%",
-    alignItems: "center",
+    width: "100%", 
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+
   },
   optionCard: {
-    width: "80%",
+    width: "48%",
     backgroundColor: "#f9f9f9",
     padding: 15,
     borderRadius: 10,
     alignItems: "center",
     marginVertical: 10,
     elevation: 2,
+   
   },
   optionText: {
     fontSize: 16,
@@ -119,5 +136,18 @@ const styles = StyleSheet.create({
   optionSubtext: {
     fontSize: 12,
     color: "gray",
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 20,
+    marginTop:20,
+  },
+  headerText: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "black",
+    marginLeft: 10,
+
   },
 });

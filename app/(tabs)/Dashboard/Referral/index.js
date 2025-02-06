@@ -1,9 +1,10 @@
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, FlatList, StatusBar } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet, FlatList, StatusBar,Image, ScrollView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { TabView, SceneMap, TabBar } from "react-native-tab-view";
 import { useRouter } from "expo-router";
 import { getStatusBarHeight } from "react-native-status-bar-height";
+import { TextInput } from "react-native";
 
 const CampaignScreen = () => (
   <View style={styles.tabContainer}>
@@ -15,7 +16,12 @@ const CampaignScreen = () => (
       <Text style={styles.moveBonusText}>Move Bonus to Wallet</Text>
     </TouchableOpacity>
 
-    <Image source={{ uri: 'https://via.placeholder.com/150' }} style={styles.image} />
+    <ScrollView contentContainerStyle={styles.optionsContainer} showsVerticalScrollIndicator={false}>
+<Image source={require("../../../../images/freinds.png")} style={{    width: 250,
+    height: 150,
+    resizeMode: "contain",
+    marginVertical: 20,
+    alignSelf:'center'}} />
 
     <Text style={styles.inviteText}>Invite your friends and receive bonus on their transactions</Text>
     <Text style={styles.inviteDescription}>
@@ -23,9 +29,9 @@ const CampaignScreen = () => (
     </Text>
     <Text style={styles.referralLabel}>Your unique referral code</Text>
     <View style={styles.referralBox}>
-      <Text style={styles.referralCode}>EmBello</Text>
-      <TextInput style={styles.referralInput} value={referralCode} editable={false} />
-      <TouchableOpacity onPress={copyToClipboard} style={styles.copyButton}>
+      <Text style={styles.referralCode}>NurMuhass</Text>
+
+      <TouchableOpacity style={styles.copyButton}>
         <Ionicons name="copy-outline" size={20} color="#fff" />
         <Text style={styles.copyText}>Copy referral code</Text>
       </TouchableOpacity>
@@ -33,6 +39,8 @@ const CampaignScreen = () => (
     <TouchableOpacity style={styles.referButton}>
       <Text style={styles.referButtonText}>Refer a friend</Text>
     </TouchableOpacity>
+    </ScrollView>
+
   </View>
 );
 
@@ -63,9 +71,6 @@ const ReferralScreen = () => {
 
   const referralCode = "EmBello";
 
-  const copyToClipboard = () => {
-    console.log("Copied: " + referralCode);
-  };
 
 
   const renderScene = SceneMap({
@@ -92,8 +97,9 @@ const ReferralScreen = () => {
           <TabBar
             {...props}
             indicatorStyle={{ backgroundColor: "#7734eb" }}
-            style={{ backgroundColor: "white" }}
+            style={{ backgroundColor: "#f1f1f1",color:"#7734eb" }}
             labelStyle={{ color: "#7734eb", fontWeight: "bold" }}
+            t
           />
         )}
       />
@@ -188,7 +194,7 @@ const styles = StyleSheet.create({
     marginLeft: 5,
   },
   referButton: {
-    backgroundColor: "#b30000",
+    backgroundColor: "#7734eb",
     padding: 15,
     borderRadius: 5,
     marginTop: 20,

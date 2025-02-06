@@ -1,5 +1,5 @@
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { AntDesign, Fontisto, Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { getStatusBarHeight } from "react-native-status-bar-height";
 import { StatusBar } from "react-native";
@@ -7,25 +7,20 @@ import { StatusBar } from "react-native";
 const index = () => {
   const router = useRouter();
 
-  const settingsOptions = [
+  const fundingOptions = [
     {
-      title: "Account Security",
-      subtitle: "Change password, Biometrics and Wallet balance",
-      icon: "security",
-      route: "/Account/Settings/Security",
+      title: "Automatic Funding",
+      subtitle: "Send money through the displayed account and it will automatically appear in your wallet",
+      icon: "wallet",
+      route: "/Dashboard/FundWallet/Automatic",
     },
     {
-      title: "Notification",
-      subtitle: "Push Notification, Email Notification",
-      icon: "notifications",
-      route: "/Account/Settings/Notification",
+      title: "Manual Funding",
+      subtitle: "Send money through the displayed account and send message to fund your wallet",
+      icon: "wallet",
+      route: "/Dashboard/FundWallet/Manual",
     },
-    {
-      title: "Deactivate/Delete Account",
-      subtitle: "Account Deletion",
-      icon: "delete",
-      route: "/Account/Settings/AccountDeletion",
-    },
+
   ];
 
   return (
@@ -43,20 +38,20 @@ const index = () => {
         <TouchableOpacity onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={24} color="black" />
         </TouchableOpacity>
-        <Text style={styles.headerText}>Settings</Text>
+        <Text style={styles.headerText}>Funding wallet</Text>
       </View>
 
       {/* Settings Options */}
-      {settingsOptions.map((item, index) => (
+      {fundingOptions.map((item, index) => (
         <TouchableOpacity key={index} style={styles.option} onPress={() => router.push(item.route)}>
           <View style={styles.iconContainer}>
-            <MaterialIcons name={item.icon} size={24} color="black" />
+          <AntDesign name="wallet" size={24} color="black" />
           </View>
           <View style={styles.textContainer}>
             <Text style={styles.optionTitle}>{item.title}</Text>
             <Text style={styles.optionSubtitle}>{item.subtitle}</Text>
           </View>
-          <Ionicons name="chevron-forward" size={20} color="black" />
+          <AntDesign name="arrowright" size={24} color="black" />
         </TouchableOpacity>
       ))}
     </View>
