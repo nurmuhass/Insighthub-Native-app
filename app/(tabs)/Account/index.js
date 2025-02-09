@@ -4,6 +4,7 @@ import { Icon } from "@rneui/themed";
 import { getStatusBarHeight } from "react-native-status-bar-height";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import { signOut } from "../../../store";
 
 
 const ProfileScreen = () => { 
@@ -17,6 +18,17 @@ const ProfileScreen = () => {
     { id: 7, name: "Legal", description: "Help, Privacy & Security, Legal", icon: "document-text-outline" ,route: "Account/Privacy"},
   ];
   const router = useRouter(); // Initialize the router
+
+  const handleLogout = async () => {
+    const result = await signOut();
+    if (result.success) {
+      // Navigate to the login screen after logout.
+      router.replace("/login");
+    } else {
+      console.error("Logout error:", result.error);
+    }
+  };
+
   return (
      <View style={{paddingTop:getStatusBarHeight(),backgroundColor:'#fff',flex:1}}>
           <StatusBar
@@ -55,7 +67,7 @@ const ProfileScreen = () => {
         ))}
 
         {/* Logout Button */}
-        <TouchableOpacity style={styles.logoutButton}>
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <Icon name="log-out-outline" type="ionicon" color="red" size={24} />
           <Text style={styles.logoutText}>Logout</Text>
         </TouchableOpacity>

@@ -1,118 +1,231 @@
-import { AntDesign, Ionicons, MaterialIcons } from "@expo/vector-icons";
+import React, { useEffect, useState } from "react";
+import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet, Switch, ActivityIndicator, ScrollView } from "react-native";
+import { Picker } from "@react-native-picker/picker";
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
-import { StatusBar } from "react-native";
-import { View, Text, TextInput, TouchableOpacity, Image, Alert } from "react-native";
-import { getStatusBarHeight } from "react-native-status-bar-height";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const BuyData = () => {
-  const [selectedNetwork, setSelectedNetwork] = useState(null);
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [walletBalance, setWalletBalance] = useState(1197.8);
-    const router = useRouter();
-  const networks = [
-    { id: "mtn", name: "MTN", logo: require("../../../images/mtn.png") },
-    { id: "glo", name: "Glo", logo: require("../../../images/glo.jpeg") },
-    { id: "airtel", name: "Airtel", logo: require("../../../images/airtel.jpeg") },
-    { id: "9mobile", name: "9mobile", logo: require("../../../images/9mobile.png") },
-  ];
+// Helper function to generate a transaction reference
+const generateTransRef = () => "TRANS" + Date.now();
 
-  const handleBuyData = () => {
-    if (!selectedNetwork || !phoneNumber) {
-      Alert.alert("Error", "Please select a network and enter a phone number.");
+// Helper function to get stored cookie from AsyncStorage
+const getCookieHeader = async () => {
+  const cookie = await AsyncStorage.getItem("cookie");
+  return cookie || "";
+};
+
+const BuyDataScreen = () => {
+  const router = useRouter();
+  
+  const [networks, setNetworks] = useState([]);
+  const [dataPlans, setDataPlans] = useState([]);
+  const [selectedNetwork, setSelectedNetwork] = useState("");
+  const [selectedDataType, setSelectedDataType] = useState("SME");
+  const [filteredDataPlans, setFilteredDataPlans] = useState([]);
+  const [selectedDataPlan, setSelectedDataPlan] = useState("");
+  const [phone, setPhone] = useState("");
+  const [amountToPay, setAmountToPay] = useState("");
+  const [disableValidator, setDisableValidator] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchData = async () => {
+        try {
+            const cookieHeader = await getCookieHeader();
+            const response = await fetch("https://insighthub.com.ng/mobile/home/includes/route.php?buy-data", {
+                method: "GET",
+                headers: { Cookie: cookieHeader },
+            });
+
+            // Ensure the response is OK
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+
+            // Parse the JSON response
+            const responseData = await response.json();
+            console.log("Buy Data API Response:", responseData);
+
+            // Validate the structure of the response
+            if (responseData && Array.isArray(responseData.networks) && Array.isArray(responseData.dataPlans)) {
+                setNetworks(responseData.networks);
+                setDataPlans(responseData.dataPlans);
+            } else {
+                console.warn("Unexpected API response format", responseData);
+                Alert.alert("Error", "Invalid data format received from server.");
+            }
+        } catch (error) {
+            console.error("Error fetching buy data info:", error);
+            Alert.alert("Error", "Unable to load data. Please try again later.");
+        }
+    };
+
+    fetchData();
+}, []);
+  // Filter data plans based on selected network and type
+  useEffect(() => {
+    if (selectedNetwork && dataPlans.length > 0) {
+      const filtered = dataPlans.filter(
+        (plan) =>
+          plan.networkId === selectedNetwork &&
+          plan.type.toUpperCase() === selectedDataType.toUpperCase()
+      );
+      setFilteredDataPlans(filtered);
+      if (filtered.length > 0) {
+        setSelectedDataPlan(filtered[0].planId);
+        setAmountToPay(filtered[0].price.toString());
+      } else {
+        setSelectedDataPlan("");
+        setAmountToPay("");
+      }
+    }
+  }, [selectedNetwork, selectedDataType, dataPlans]);
+
+  const handleDataPlanChange = (planId) => {
+    setSelectedDataPlan(planId);
+    const plan = filteredDataPlans.find((p) => p.planId === planId);
+    if (plan) {
+      setAmountToPay(plan.price.toString());
+    } else {
+      setAmountToPay("");
+    }
+  };
+
+  const handleBuyData = async () => {
+    if (!selectedNetwork || !selectedDataType || !selectedDataPlan || !phone || !amountToPay) {
+      Alert.alert("Error", "Please complete all fields");
       return;
     }
-    Alert.alert("Success", `Data purchase successful for ${phoneNumber} on ${selectedNetwork.name}.`);
+    setLoading(true);
+    const formData = new FormData();
+    formData.append("network", selectedNetwork);
+    formData.append("datagroup", selectedDataType);
+    formData.append("dataplan", selectedDataPlan);
+    formData.append("phone", phone);
+    formData.append("amounttopay", amountToPay);
+    formData.append("ported_number", disableValidator ? "on" : "off");
+    formData.append("transref", generateTransRef());
+    formData.append("transkey", "");
+
+    try {
+      const cookieHeader = await getCookieHeader();
+      const response = await fetch("https://insighthub.com.ng/mobile/home/includes/route.php?purchase-data", {
+        method: "POST",
+        body: formData,
+        headers: { 
+          Cookie: cookieHeader,
+          // Do not manually set Content-Type for FormData.
+        },
+      });
+      const respText = await response.text();
+      console.log("Buy Data response:", respText);
+      if (respText == "0") {
+        Alert.alert("Success", "Data purchase successful!");
+        router.push("/home");
+      } else {
+        Alert.alert("Error", "Data purchase failed: " + respText);
+      }
+    } catch (error) {
+      console.error("Buy Data error:", error);
+      Alert.alert("Error", "Something went wrong. Please try again later.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-       <View style={{paddingTop:getStatusBarHeight(),backgroundColor:'#fff',flex:1,}}>
-           <StatusBar
-     translucent
-     barStyle="dark-content"
-     backgroundColor="rgba(255, 255, 255, 0)" // Transparent white color
-   />
-
-<View style={{    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 16,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',}}>
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <TouchableOpacity onPress={() => router.back()} style={{   }}>
-              <Ionicons name="arrow-back" size={24} color="#000" />
-            </TouchableOpacity>
-         
-          </View>
-
-          <Text style={{   fontSize: 20,
-    fontWeight: 'bold'}}>Data Service</Text>
-
-          {/* Share Button */}
-          <TouchableOpacity onPress={{}} style={{    padding: 7,
-    backgroundColor: '#2899ff',
-    borderRadius: 5,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: 60,
-    height: 35,}}>
-            <Text style={{ color: '#fff'}}>Next</Text>
-          </TouchableOpacity>
-        </View>
-
-
-      {/* Wallet Balance */}
-      <View style={{ flexDirection: "row", justifyContent: "space-between", padding: 10, backgroundColor: "#f1f1f1", borderRadius: 5, marginBottom: 20,width:'96%',alignItems:'center' ,alignSelf:'center',marginVertical:8}}>
-        <View style={{ flexDirection: "row", alignItems: "center" }}>
-        <AntDesign name="wallet" size={24} color="black" />
-        <Text style={{ fontWeight: "bold" ,marginLeft:5}}>Wallet Balance</Text>
-        </View>
-        <Text style={{ color: "green", fontWeight: "bold" }}>N{walletBalance.toFixed(2)}</Text>
+    <ScrollView style={styles.container}>
+      <Text style={styles.header}>Buy Data</Text>
+      
+      <Text style={styles.subHeader}>Select Network</Text>
+      <View style={styles.pickerContainer}>
+        <Picker
+          selectedValue={selectedNetwork}
+          onValueChange={(itemValue) => setSelectedNetwork(itemValue)}
+          style={styles.picker}
+        >
+          <Picker.Item label="Select Network" value="" />
+          {networks.map((network) => (
+            <Picker.Item key={network.nId} label={network.network} value={network.nId} />
+          ))}
+        </Picker>
       </View>
-<View style={{marginHorizontal:10}}>
-
-
-      {/* Select Network */}
-      <Text style={{ marginBottom: 10 }}>Select Network</Text>
-      <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-        {networks.map((network) => (
-          <TouchableOpacity key={network.id} onPress={() => setSelectedNetwork(network)}>
-            <Image source={network.logo} resizeMode="contain" style={{ width: 50, height: 50, opacity: selectedNetwork?.id === network.id ? 1 : 0.5 }} />
-          </TouchableOpacity>
-        ))}
+      
+      <Text style={styles.subHeader}>Select Data Type</Text>
+      <View style={styles.pickerContainer}>
+        <Picker
+          selectedValue={selectedDataType}
+          onValueChange={(itemValue) => setSelectedDataType(itemValue)}
+          style={styles.picker}
+        >
+          <Picker.Item label="SME" value="SME" />
+          <Picker.Item label="Gifting" value="Gifting" />
+          <Picker.Item label="Corporate" value="Corporate" />
+        </Picker>
       </View>
-
-      {/* Phone Number Input */}
-
-
-      <Text style={{ marginTop: 20 }}>Phone Number</Text>
-      <View style={{  alignItems: "center" }}>
+      
+      <Text style={styles.subHeader}>Select Data Plan</Text>
+      <View style={styles.pickerContainer}>
+        <Picker
+          selectedValue={selectedDataPlan}
+          onValueChange={(itemValue) => handleDataPlanChange(itemValue)}
+          style={styles.picker}
+        >
+          {filteredDataPlans.length === 0 ? (
+            <Picker.Item label="No plans available" value="" />
+          ) : (
+            filteredDataPlans.map((plan) => (
+              <Picker.Item key={plan.planId} label={plan.planName} value={plan.planId} />
+            ))
+          )}
+        </Picker>
+      </View>
+      
+      <Text style={styles.subHeader}>Phone Number</Text>
       <TextInput
-        style={{ borderWidth: 1, borderColor: "#ccc", padding: 10, borderRadius: 5, marginTop: 5 ,width:'100%'}}
-        placeholder="Enter Phone Number"
-        keyboardType="numeric"
-        value={phoneNumber}
-        onChangeText={setPhoneNumber}
+        style={styles.input}
+        placeholder="Enter phone number"
+        keyboardType="phone-pad"
+        value={phone}
+        onChangeText={setPhone}
       />
-      <MaterialIcons name="contacts" size={24} color="black"  style={{position:'absolute',top:10,right:5}}/>
-      </View>
-  
+      
+      <Text style={styles.subHeader}>Amount To Pay</Text>
+      <TextInput
+        style={styles.input}
+        value={amountToPay}
+        editable={false}
+      />
 
-      {/* Buy Now Button */}
-      <TouchableOpacity
-        style={{ backgroundColor: selectedNetwork && phoneNumber ? "#d9534f" : "#ccc", padding: 15, borderRadius: 5, marginTop: 20 }}
-        onPress={handleBuyData}
-        disabled={!selectedNetwork || !phoneNumber}
-      >
-        <Text style={{ color: "white", textAlign: "center" }}>Buy Now</Text>
+      <View style={styles.switchContainer}>
+        <Text style={styles.label}>Disable Number Validator</Text>
+        <Switch
+          value={disableValidator}
+          onValueChange={setDisableValidator}
+        />
+      </View>
+
+      <TouchableOpacity style={styles.button} onPress={handleBuyData} disabled={loading}>
+        {loading ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text style={styles.buttonText}>Buy Data</Text>
+        )}
       </TouchableOpacity>
-      </View>
-
-    </View>
+    </ScrollView>
   );
 };
 
-export default BuyData;
+const styles = StyleSheet.create({
+  container: { flex: 1, padding: 20, backgroundColor: "#fff" },
+  header: { fontSize: 24, fontWeight: "bold", textAlign: "center", marginBottom: 10, color: "#7734eb" },
+  subHeader: { fontSize: 16, marginTop: 10, marginBottom: 5, fontWeight: "bold", color: "#333" },
+  pickerContainer: { borderWidth: 1, borderColor: "#ccc", borderRadius: 8, marginBottom: 15 },
+  picker: { height: 50, width: "100%" },
+  input: { borderWidth: 1, borderColor: "#ccc", padding: 12, borderRadius: 8, marginBottom: 15, fontSize: 16 },
+  switchContainer: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 15 },
+  label: { fontSize: 14, fontWeight: "bold", color: "#333" },
+  button: { backgroundColor: "#7734eb", padding: 15, borderRadius: 8, alignItems: "center", marginBottom: 20 },
+  buttonText: { color: "#fff", fontSize: 16, fontWeight: "bold" },
+});
+
+export default BuyDataScreen;

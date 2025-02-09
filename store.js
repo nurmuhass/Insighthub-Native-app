@@ -1,71 +1,91 @@
+// store.js
 import { Store, registerInDevtools } from "pullstate";
-import {
-  onAuthStateChanged,
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  signOut,
-  updateProfile,
-} from "firebase/auth";
-import { app, auth } from "./firebase-config";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import axios from "axios";
 
+// Create a Pullstate store to manage auth state
 export const AuthStore = new Store({
   isLoggedIn: false,
   initialized: false,
   user: null,
-  role:null,
+  token: null,
 });
 
-const unsub = onAuthStateChanged(auth, (user) => {
-  console.log("onAuthStateChange", user);
-  AuthStore.update((store) => {
-    store.user = user;
-    store.isLoggedIn = user ? true : false;
-    store.initialized = true;
-  });
-});
-
-export const SignInScreen = async (email, password) => {
+// Call this once on app start to check for an existing login flag
+export const initializeAuth = async () => {
   try {
-    const resp = await signInWithEmailAndPassword(auth, email, password);
+    const loggedIn = await AsyncStorage.getItem("loggedIn");
+    if (loggedIn === "true") {
+      // In a future update, you might also retrieve user info or a token
+      AuthStore.update((store) => {
+        store.token = null;
+        store.user = {}; // you can fill in stored user info if available
+        store.isLoggedIn = true;
+      });
+    } else {
+      AuthStore.update((store) => {
+        store.token = null;
+        store.user = null;
+        store.isLoggedIn = false;
+      });
+    }
+  } catch (error) {
+    console.error("Error initializing auth:", error);
+  } finally {
     AuthStore.update((store) => {
-      store.user = resp.user;
-      store.isLoggedIn = resp.user ? true : false;
+      store.initialized = true;
     });
-    return { user: auth.currentUser };
-  } catch (e) {
-    return { error: e };
   }
 };
 
-export const appSignOut = async () => {
+// Updated signIn function that handles numeric responses
+export const signIn = async (phone, password) => {
   try {
-    await signOut(auth);
+    const API_URL = "https://insighthub.com.ng/mobile/home/includes/route.php?login";
+    const formData = new FormData();
+    formData.append("phone", phone);
+    formData.append("password", password);
+
+    const response = await axios.post(API_URL, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+
+    // Since your API returns numeric responses:
+    // 0 = Login successful
+    // 1 = Incorrect login details
+    // 2 = Account blocked
+    if (response.data == 0) {
+      // Login successful: persist a simple flag
+      await AsyncStorage.setItem("loggedIn", "true");
+      // Optionally, store additional user info if available.
+      AuthStore.update((store) => {
+        store.token = null; // For now, no token is returned.
+        store.user = { phone }; // You might store more info later.
+        store.isLoggedIn = true;
+      });
+      return { user: { phone } };
+    } else {
+      return { error: "Login failed: " + response.data };
+    }
+  } catch (error) {
+    return { error: error.response ? error.response.data : error.message };
+  }
+};
+
+// Updated signOut function remains the same.
+export const signOut = async () => {
+  try {
+    await AsyncStorage.removeItem("loggedIn");
+    await AsyncStorage.removeItem("authToken");
+    await AsyncStorage.removeItem("user");
     AuthStore.update((store) => {
+      store.token = null;
       store.user = null;
       store.isLoggedIn = false;
     });
-    return { user: null };
-  } catch (e) {
-    return { error: e };
-  }
-};
-
-export const RegisterScreen = async (email, password, displayName) => {
-  try {
-    // this will trigger onAuthStateChange to update the store..
-    const resp = await createUserWithEmailAndPassword(auth, email, password);
-
-    // add the displayName
-    await updateProfile(resp.user, { displayName });
-
-    AuthStore.update((store) => {
-      store.user = auth.currentUser;
-      store.isLoggedIn = true;
-    });
-
-    return { user: auth.currentUser };
-  } catch (e) {
-    return { error: e };
+    return { success: true };
+  } catch (error) {
+    return { error };
   }
 };
 

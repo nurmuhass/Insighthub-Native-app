@@ -1,40 +1,53 @@
-import { useRootNavigationState } from "expo-router";
+import React, { useEffect, useState } from "react";
+import { View, Image } from "react-native";
 import { useRouter, useSegments } from "expo-router";
-import { AuthStore, initStore } from "../store";
-import React, { useState } from "react";
-import { Text, View } from "react-native";
-import { Image } from "react-native";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const Index = () => {
-
   const segments = useSegments();
   const router = useRouter();
+  const [initialized, setInitialized] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  const navigationState = useRootNavigationState();
+  useEffect(() => {
+    const checkLoginStatus = async () => {
+      try {
+        const loggedIn = await AsyncStorage.getItem("loggedIn");
+        if (loggedIn === "true") {
+          setIsLoggedIn(true);
+        }
+      } catch (error) {
+        console.error("Error reading login status", error);
+      } finally {
+        setInitialized(true);
+      }
+    };
+    checkLoginStatus();
+  }, []);
 
-  const { initialized, isLoggedIn } = AuthStore.useState();
-
-  React.useEffect(() => {
-    if (!navigationState?.key || !initialized) return;
+  useEffect(() => {
+    if (!initialized) return;
 
     const inAuthGroup = segments[0] === "(auth)";
-
-    if (
-      // If the user is not signed in and the initial segment is not anything
-      //  segment is not anything in the auth group.
-      !isLoggedIn &&
-      !inAuthGroup
-    ) {
-      // Redirect to the login page.
-      router.replace("/create-account");
+    if (!isLoggedIn && !inAuthGroup) {
+      // If not logged in, redirect to login screen.
+      router.replace("/(auth)/login");
     } else if (isLoggedIn) {
-      // go to tabs root.
-      router.replace("/(tabs)/home");
+      // If logged in, redirect to the home screen.
+      router.replace("/(tabs)/Dashboard");
     }
-  }, [segments, navigationState?.key, initialized]);
+  }, [segments, initialized, isLoggedIn, router]);
 
-  return <View style={{flex:1,backgroundColor:'#fff'}}>
-    {!navigationState?.key ? <Image source={require("../assets/images/splash.png")}
-     style={{height:'100%',width:'100%'}}/> : <></>}</View>;
+  return (
+    <View style={{ flex: 1, backgroundColor: "#fff" }}>
+      {!initialized ? (
+        <Image
+          source={require("../assets/images/splash.png")}
+          style={{ height: "100%", width: "100%" }}
+        />
+      ) : null}
+    </View>
+  );
 };
+
 export default Index;
