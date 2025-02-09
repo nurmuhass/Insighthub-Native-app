@@ -27,40 +27,50 @@ const BuyDataScreen = () => {
   const [disableValidator, setDisableValidator] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  // Fetch networks and data plans on mount
   useEffect(() => {
     const fetchData = async () => {
+      try {
+        const cookieHeader = await getCookieHeader();
+        const response = await fetch("https://insighthub.com.ng/mobile/home/includes/route.php?buy-data", {
+          method: "GET",
+          headers: { Cookie: cookieHeader },
+        });
+        const text = await response.text();
+        console.log("Buy Data API Response:", text);
+        // Try to parse as JSON; if it fails, assume it’s an array string.
+        let data;
         try {
-            const cookieHeader = await getCookieHeader();
-            const response = await fetch("https://insighthub.com.ng/mobile/home/includes/route.php?buy-data", {
-                method: "GET",
-                headers: { Cookie: cookieHeader },
-            });
-
-            // Ensure the response is OK
-            if (!response.ok) {
-                throw new Error(`HTTP error! Status: ${response.status}`);
-            }
-
-            // Parse the JSON response
-            const responseData = await response.json();
-            console.log("Buy Data API Response:", responseData);
-
-            // Validate the structure of the response
-            if (responseData && Array.isArray(responseData.networks) && Array.isArray(responseData.dataPlans)) {
-                setNetworks(responseData.networks);
-                setDataPlans(responseData.dataPlans);
-            } else {
-                console.warn("Unexpected API response format", responseData);
-                Alert.alert("Error", "Invalid data format received from server.");
-            }
-        } catch (error) {
-            console.error("Error fetching buy data info:", error);
-            Alert.alert("Error", "Unable to load data. Please try again later.");
+          data = JSON.parse(text);
+        } catch (e) {
+          // Fallback: if the API returns a string that looks like an array separated by a delimiter,
+          // you may need to split it manually.
+          data = null;
+          console.warn("Response is not JSON. Please check your API.");
         }
+        if (data && Array.isArray(data)) {
+          setNetworks(data[0] || []);
+          try {
+            const plans = JSON.parse(data[1]);
+            setDataPlans(plans || []);
+          } catch (err) {
+            console.error("Error parsing data plans:", err);
+            setDataPlans([]);
+          }
+        } else if (data && data.networks && data.dataPlans) {
+          setNetworks(data.networks);
+          setDataPlans(data.dataPlans);
+        } else {
+          console.warn("Unexpected API response format", data);
+        }
+      } catch (error) {
+        console.error("Error fetching buy data info:", error);
+        Alert.alert("Error", "Unable to load data. Please try again later.");
+      }
     };
-
     fetchData();
-}, []);
+  }, []);
+
   // Filter data plans based on selected network and type
   useEffect(() => {
     if (selectedNetwork && dataPlans.length > 0) {
