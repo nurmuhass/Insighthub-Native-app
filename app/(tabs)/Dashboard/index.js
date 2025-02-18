@@ -1,5 +1,5 @@
-import { View, Text, Image, TouchableOpacity,ToastAndroid, Platform, Alert, FlatList, StyleSheet, Modal } from 'react-native'
-import React, { useState } from 'react'
+import { View, Text, Image, TouchableOpacity,ToastAndroid, Platform, Alert, FlatList, StyleSheet, Modal, ActivityIndicator } from 'react-native'
+import React, { useEffect, useState } from 'react'
 import { StatusBar } from 'expo-status-bar'
 import { getStatusBarHeight } from "react-native-status-bar-height";
 import AntDesign from '@expo/vector-icons/AntDesign';
@@ -9,16 +9,72 @@ import Entypo from '@expo/vector-icons/Entypo';
 import Feather from '@expo/vector-icons/Feather';
 import * as Clipboard from "expo-clipboard";
 import { useRouter } from 'expo-router';
-const index = () => {
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
+const index = () => {
+ const [profile, setProfile] = useState(null);
   const [index, setIndex] = useState(0);
+    const [loading, setLoading] = useState(true);
+
   const router = useRouter(); // Initialize the router
   // Define two sets of data
   const accounts = [
     { name: "Palmpay", number: "1290876722", charge: "N25 Charge" },
     { name: "Opay", number: "7638291920", charge: "N20 Charge" },
   ];
-
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const token = await AsyncStorage.getItem('token');
+        console.log("Token from AsyncStorage in profile page:", token);
+        if (!token) {
+          throw new Error("No access token found");
+        }
+  
+        const response = await fetch('https://insighthub.com.ng/api/user/index.php', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Token ${token}`,
+            'Accept': 'application/json'
+          },
+        });
+        
+        console.log("Response status:", response.status);
+        
+        const responseText = await response.text();
+        console.log("Response text:", responseText);
+        
+        let json;
+        try {
+          json = JSON.parse(responseText);
+        } catch (e) {
+          console.error("Error parsing JSON:", e);
+        }
+        
+        console.log("Raw API Response:", json);
+    // Save the raw API response in AsyncStorage
+    if (json) {
+      await AsyncStorage.setItem('rawApiResponse', JSON.stringify(json));
+              
+    }
+        if (!json || json.status === "fail") {
+          console.error('Error:', json ? json.msg : "No data returned");
+          setProfile(null);
+        } else {
+          // Remove the status field and use the remaining keys as profile data.
+          const { status, ...profileData } = json;
+          setProfile(profileData);
+        }
+      } catch (error) {
+        console.error("Error fetching profile:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+  
+    fetchProfile();
+  }, []);
+  
   // Function to toggle between accounts
   const toggleAccount = () => {
     setIndex((prevIndex) => (prevIndex === 0 ? 1 : 0));
@@ -78,6 +134,17 @@ const moreServices = [
   { id: 8, name: "Airtime Swap", icon: <FontAwesome5 name="exchange-alt" size={30} color="#7734eb" /> , route: "Dashboard/AirtimeSwap" },
 ];
   const [modalVisible, setModalVisible] = useState(false);
+
+
+
+    if (loading) {
+      return (
+        <View style={styles.center}>
+          <ActivityIndicator size="large" color="#7734eb" />
+        </View>
+      );
+    }
+
   return (
     <View style={{paddingTop:getStatusBarHeight(),backgroundColor:'#fff',flex:1}}>
         <StatusBar
@@ -89,7 +156,7 @@ const moreServices = [
       <View style={{flexDirection:'row',alignItems:'center'}}>
       <Image source={require("../../../images/Profilepic.png")} resizeMethod="contain" style={{width:40,height:40,marginRight:10,marginLeft:8,borderRadius:10}}/>
 <View>
-  <Text>nurmuhass</Text>
+  <Text>{profile !=null ? profile.sFname + profile.sLname : '' }</Text>
   <View style={{flexDirection:'row',alignItems:'center'}}>
   <Text>Welcome Back</Text>
   <Image source={require("../../../images/clapp.jpg")} resizeMethod="contain" style={{width:28,height:20,marginLeft:5}}/>

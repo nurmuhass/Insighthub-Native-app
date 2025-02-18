@@ -1,11 +1,19 @@
+// login.js
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-// Set your login API endpoint
 const API_URL = "https://insighthub.com.ng/mobile/home/includes/route.php?login";
+
+// Revised extraction function using regex
+const extractTokenFromCookie = (cookieString, tokenName = 'loginAccToken') => {
+  if (!cookieString) return null;
+  const regex = new RegExp(tokenName + '=([^;]+)');
+  const match = regex.exec(cookieString);
+  return match ? match[1] : null;
+};
 
 export default function SignInScreen() {
   const [phone, setPhone] = useState('');
@@ -28,31 +36,37 @@ export default function SignInScreen() {
       const response = await fetch(API_URL, {
         method: 'POST',
         body: formData,
-        // Do not manually set Content-Type when sending FormData; fetch will do it correctly.
-        // credentials: 'include' can sometimes help but is not reliable in Expo.
+        credentials: 'include', // include cookies
       });
       
-      // Read the raw response text (our API returns numeric responses)
-      const responseText = await response.text();
+      const responseText = (await response.text()).trim();
       console.log("Login response:", responseText);
-
-      if (responseText == "0") {
+    
+      if (responseText === "0") {
         Alert.alert("Success", "Login Successful!");
-        // Attempt to read the Set-Cookie header manually.
-        // (Note: Depending on your server and fetch configuration, this header may not be exposed.)
-        const cookie = response.headers.get('set-cookie');
-        if (cookie) {
-          await AsyncStorage.setItem('cookie', cookie);
-          console.log("Cookie saved:", cookie);
+        // Look for the set-cookie header
+        const rawCookie = response.headers.get('set-cookie');
+        console.log("Raw cookie header:", rawCookie);
+        if (rawCookie) {
+          // Save the entire cookie string (if needed)
+          await AsyncStorage.setItem('cookie', rawCookie);
+          // Extract the token using the revised function
+          const token = extractTokenFromCookie(rawCookie);
+        
+          if (token) {
+            await AsyncStorage.setItem('token', token);
+            console.log("Token extracted and saved:", token);
+          } else {
+            console.warn("Token not found in cookie");
+          }
         } else {
-          console.warn("No Set-Cookie header found!");
+          console.warn("No set-cookie header found!");
         }
-        // Persist a login flag
         await AsyncStorage.setItem("loggedIn", "true");
-        router.push("../(tabs)/Dashboard"); // Adjust route as needed
-      } else if (responseText == "1") {
+        router.push("../(tabs)/Dashboard");
+      } else if (responseText === "1") {
         Alert.alert("Error", "Incorrect Login Details, Please Try Again.");
-      } else if (responseText == "2") {
+      } else if (responseText === "2") {
         Alert.alert("Error", "Sorry, Your Account Has Been Blocked. Please Contact Admin.");
       } else {
         Alert.alert("Error", "Unknown error. Please contact admin.");

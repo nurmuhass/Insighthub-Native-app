@@ -1,5 +1,15 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet, Switch, ActivityIndicator, ScrollView } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  Alert,
+  StyleSheet,
+  Switch,
+  ActivityIndicator,
+  ScrollView
+} from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -7,136 +17,202 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 // Helper function to generate a transaction reference
 const generateTransRef = () => "TRANS" + Date.now();
 
-// Helper function to get stored cookie from AsyncStorage
-const getCookieHeader = async () => {
-  const cookie = await AsyncStorage.getItem("cookie");
-  return cookie || "";
-};
-
 const BuyDataScreen = () => {
   const router = useRouter();
   
+  // State variables
   const [networks, setNetworks] = useState([]);
   const [dataPlans, setDataPlans] = useState([]);
+  const [dataTypes, setDataTypes] = useState([]); // Data type options based on network attributes
   const [selectedNetwork, setSelectedNetwork] = useState("");
-  const [selectedDataType, setSelectedDataType] = useState("SME");
+  const [selectedDataType, setSelectedDataType] = useState("");
   const [filteredDataPlans, setFilteredDataPlans] = useState([]);
   const [selectedDataPlan, setSelectedDataPlan] = useState("");
   const [phone, setPhone] = useState("");
   const [amountToPay, setAmountToPay] = useState("");
   const [disableValidator, setDisableValidator] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [userType, setUserType] = useState("1"); // sType: "1" = regular, "2" = agent, "3" = vendor
 
-  // Fetch networks and data plans on mount
+  // 1. Fetch networks and data plans from your endpoint
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchNetworksAndPlans = async () => {
       try {
-        const cookieHeader = await getCookieHeader();
-        const response = await fetch("https://insighthub.com.ng/mobile/home/includes/route.php?buy-data", {
-          method: "GET",
-          headers: { Cookie: cookieHeader },
-        });
-        const text = await response.text();
-        console.log("Buy Data API Response:", text);
-        // Try to parse as JSON; if it fails, assume it’s an array string.
-        let data;
-        try {
-          data = JSON.parse(text);
-        } catch (e) {
-          // Fallback: if the API returns a string that looks like an array separated by a delimiter,
-          // you may need to split it manually.
-          data = null;
-          console.warn("Response is not JSON. Please check your API.");
+        const token = await AsyncStorage.getItem("token");
+        if (!token) {
+          Alert.alert("Error", "No access token found");
+          return;
         }
-        if (data && Array.isArray(data)) {
-          setNetworks(data[0] || []);
-          try {
-            const plans = JSON.parse(data[1]);
-            setDataPlans(plans || []);
-          } catch (err) {
-            console.error("Error parsing data plans:", err);
-            setDataPlans([]);
+
+          // Retrieve the rawApiResponse from AsyncStorage
+          const rawApiResponse = await AsyncStorage.getItem("rawApiResponse");
+        
+          if (rawApiResponse) {
+            try {
+              // Parse the rawApiResponse JSON string into an object
+              const parsedResponse = JSON.parse(rawApiResponse);
+        
+              // Extract the sType value from the parsed object
+              const storedSType = parsedResponse.sType;
+        
+              if (storedSType) {
+                setUserType(storedSType);
+                console.log("User sType from storage:", storedSType);
+              } else {
+                console.log("sType not found in rawApiResponse; defaulting to 1");
+              }
+            } catch (error) {
+              console.error("Error parsing rawApiResponse:", error);
+            }
+          } else {
+            console.log("rawApiResponse not found in storage; defaulting to 1");
           }
-        } else if (data && data.networks && data.dataPlans) {
-          setNetworks(data.networks);
-          setDataPlans(data.dataPlans);
+        
+        
+        const response = await fetch("https://insighthub.com.ng/api/data/index.php", {
+          method: "GET",
+          headers: {
+            "Accept": "application/json",
+            "Authorization": `Token ${token}`
+          }
+        });
+        const json = await response.json();
+
+        if (json.status === "success") {
+          // Filter networks to include only those with networkStatus "On"
+          const activeNetworks = json.networks.filter(net => net.networkStatus === "On");
+          setNetworks(activeNetworks);
+          setDataPlans(json.dataPlans || []);
         } else {
-          console.warn("Unexpected API response format", data);
+          Alert.alert("Error", "Could not load networks and data plans");
         }
       } catch (error) {
-        console.error("Error fetching buy data info:", error);
-        Alert.alert("Error", "Unable to load data. Please try again later.");
+        console.error("Error fetching networks and data plans:", error);
+        Alert.alert("Error", "An error occurred while fetching data");
       }
     };
-    fetchData();
+
+    fetchNetworksAndPlans();
   }, []);
 
-  // Filter data plans based on selected network and type
+  // 2. When a network is selected, update available data types based on its attributes
   useEffect(() => {
-    if (selectedNetwork && dataPlans.length > 0) {
-      const filtered = dataPlans.filter(
-        (plan) =>
-          plan.networkId === selectedNetwork &&
-          plan.type.toUpperCase() === selectedDataType.toUpperCase()
-      );
-      setFilteredDataPlans(filtered);
-      if (filtered.length > 0) {
-        setSelectedDataPlan(filtered[0].planId);
-        setAmountToPay(filtered[0].price.toString());
-      } else {
-        setSelectedDataPlan("");
-        setAmountToPay("");
-      }
+    if (!selectedNetwork) {
+      setDataTypes([]);
+      setSelectedDataType("");
+      setFilteredDataPlans([]);
+      setAmountToPay("");
+      return;
     }
+    // Find the selected network object
+    const netObj = networks.find(net => net.nId == selectedNetwork);
+    if (!netObj) return;
+    
+    // Build available data types from network attributes.
+    // The website uses attributes: smeStatus, giftingStatus, corporateStatus, vtu, sharesell.
+    let types = [];
+    if (netObj.smeStatus === "On") types.push("SME");
+    if (netObj.giftingStatus === "On") types.push("Gifting");
+    if (netObj.corporateStatus === "On") types.push("Corporate");
+    if (netObj.vtu === "On") types.push("VTU");
+    if (netObj.sharesell === "On") types.push("Share And Sell");
+    
+    setDataTypes(types);
+    // Auto-select the first available type if any.
+    if (types.length > 0) {
+      setSelectedDataType(types[0]);
+    } else {
+      setSelectedDataType("");
+    }
+    setSelectedDataPlan("");
+    setAmountToPay("");
+  }, [selectedNetwork, networks]);
+
+  // 3. When selected data type changes, filter data plans
+  useEffect(() => {
+    if (!selectedNetwork || !selectedDataType) {
+      setFilteredDataPlans([]);
+      setSelectedDataPlan("");
+      setAmountToPay("");
+      return;
+    }
+    // Each data plan is assumed to have:
+    // pId, datanetwork, type, name, day, vendorprice, agentprice, userprice.
+    const filtered = dataPlans.filter(plan =>
+      plan.datanetwork == selectedNetwork && plan.type === selectedDataType
+    );
+    setFilteredDataPlans(filtered);
+    setSelectedDataPlan("");
+    setAmountToPay("");
   }, [selectedNetwork, selectedDataType, dataPlans]);
 
+  // 4. Handle data plan selection to set the price
   const handleDataPlanChange = (planId) => {
     setSelectedDataPlan(planId);
-    const plan = filteredDataPlans.find((p) => p.planId === planId);
+    const plan = filteredDataPlans.find(p => p.pId == planId);
     if (plan) {
-      setAmountToPay(plan.price.toString());
+      let price = plan.userprice; // default for regular users
+      if (userType === "3") {
+        price = plan.vendorprice;
+      } else if (userType === "2") {
+        price = plan.agentprice;
+      }
+      setAmountToPay("N" + price);
     } else {
       setAmountToPay("");
     }
   };
 
+  // 5. Handle the purchase submission
   const handleBuyData = async () => {
-    if (!selectedNetwork || !selectedDataType || !selectedDataPlan || !phone || !amountToPay) {
-      Alert.alert("Error", "Please complete all fields");
+    if (!selectedNetwork) {
+      Alert.alert("Error", "Please select a network");
+      return;
+    }
+    if (!selectedDataPlan) {
+      Alert.alert("Error", "Please select a data plan");
+      return;
+    }
+    if (!phone) {
+      Alert.alert("Error", "Please enter a phone number");
       return;
     }
     setLoading(true);
-    const formData = new FormData();
-    formData.append("network", selectedNetwork);
-    formData.append("datagroup", selectedDataType);
-    formData.append("dataplan", selectedDataPlan);
-    formData.append("phone", phone);
-    formData.append("amounttopay", amountToPay);
-    formData.append("ported_number", disableValidator ? "on" : "off");
-    formData.append("transref", generateTransRef());
-    formData.append("transkey", "");
-
     try {
-      const cookieHeader = await getCookieHeader();
-      const response = await fetch("https://insighthub.com.ng/mobile/home/includes/route.php?purchase-data", {
+      const token = await AsyncStorage.getItem("token");
+      if (!token) {
+        Alert.alert("Error", "No access token found");
+        setLoading(false);
+        return;
+      }
+      // Build payload to match backend expectations
+      const body = {
+        network: selectedNetwork,
+        phone: phone,
+        data_plan: selectedDataPlan,
+        ref: generateTransRef(),
+        ported_number: disableValidator ? "true" : "false"
+      };
+      const response = await fetch("https://insighthub.com.ng/api/data/index.php", {
         method: "POST",
-        body: formData,
-        headers: { 
-          Cookie: cookieHeader,
-          // Do not manually set Content-Type for FormData.
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Token ${token}`,
+          "Accept": "application/json"
         },
+        body: JSON.stringify(body)
       });
-      const respText = await response.text();
-      console.log("Buy Data response:", respText);
-      if (respText == "0") {
-        Alert.alert("Success", "Data purchase successful!");
-        router.push("/home");
+      const resJson = await response.json();
+      console.log("Buy Data Response:", resJson);
+      if (resJson.status === "success") {
+        Alert.alert("Success", "Data purchase successful");
+        // Optionally reset form or navigate away.
       } else {
-        Alert.alert("Error", "Data purchase failed: " + respText);
+        Alert.alert("Error", resJson.msg || "Data purchase failed");
       }
     } catch (error) {
-      console.error("Buy Data error:", error);
-      Alert.alert("Error", "Something went wrong. Please try again later.");
+      console.error("Error buying data:", error);
+      Alert.alert("Error", "An error occurred while processing your request");
     } finally {
       setLoading(false);
     }
@@ -146,6 +222,7 @@ const BuyDataScreen = () => {
     <ScrollView style={styles.container}>
       <Text style={styles.header}>Buy Data</Text>
       
+      {/* Select Network */}
       <Text style={styles.subHeader}>Select Network</Text>
       <View style={styles.pickerContainer}>
         <Picker
@@ -154,12 +231,17 @@ const BuyDataScreen = () => {
           style={styles.picker}
         >
           <Picker.Item label="Select Network" value="" />
-          {networks.map((network) => (
-            <Picker.Item key={network.nId} label={network.network} value={network.nId} />
+          {networks.map(net => (
+            <Picker.Item
+              key={net.nId}
+              label={net.network}
+              value={net.nId}
+            />
           ))}
         </Picker>
       </View>
       
+      {/* Select Data Type */}
       <Text style={styles.subHeader}>Select Data Type</Text>
       <View style={styles.pickerContainer}>
         <Picker
@@ -167,12 +249,17 @@ const BuyDataScreen = () => {
           onValueChange={(itemValue) => setSelectedDataType(itemValue)}
           style={styles.picker}
         >
-          <Picker.Item label="SME" value="SME" />
-          <Picker.Item label="Gifting" value="Gifting" />
-          <Picker.Item label="Corporate" value="Corporate" />
+          {dataTypes.length === 0 ? (
+            <Picker.Item label="Select Type" value="" />
+          ) : (
+            dataTypes.map(type => (
+              <Picker.Item key={type} label={type} value={type} />
+            ))
+          )}
         </Picker>
       </View>
       
+      {/* Select Data Plan */}
       <Text style={styles.subHeader}>Select Data Plan</Text>
       <View style={styles.pickerContainer}>
         <Picker
@@ -183,13 +270,18 @@ const BuyDataScreen = () => {
           {filteredDataPlans.length === 0 ? (
             <Picker.Item label="No plans available" value="" />
           ) : (
-            filteredDataPlans.map((plan) => (
-              <Picker.Item key={plan.planId} label={plan.planName} value={plan.planId} />
+            filteredDataPlans.map(plan => (
+              <Picker.Item
+                key={plan.pId}
+                label={`${plan.name} ${plan.type} (N${userType === "3" ? plan.vendorprice : userType === "2" ? plan.agentprice : plan.userprice}) (${plan.day} Days)`}
+                value={plan.pId}
+              />
             ))
           )}
         </Picker>
       </View>
       
+      {/* Phone Number */}
       <Text style={styles.subHeader}>Phone Number</Text>
       <TextInput
         style={styles.input}
@@ -199,6 +291,7 @@ const BuyDataScreen = () => {
         onChangeText={setPhone}
       />
       
+      {/* Amount To Pay */}
       <Text style={styles.subHeader}>Amount To Pay</Text>
       <TextInput
         style={styles.input}
@@ -206,6 +299,7 @@ const BuyDataScreen = () => {
         editable={false}
       />
 
+      {/* Disable Validator */}
       <View style={styles.switchContainer}>
         <Text style={styles.label}>Disable Number Validator</Text>
         <Switch
@@ -214,6 +308,7 @@ const BuyDataScreen = () => {
         />
       </View>
 
+      {/* Buy Data Button */}
       <TouchableOpacity style={styles.button} onPress={handleBuyData} disabled={loading}>
         {loading ? (
           <ActivityIndicator color="#fff" />
@@ -239,3 +334,4 @@ const styles = StyleSheet.create({
 });
 
 export default BuyDataScreen;
+0

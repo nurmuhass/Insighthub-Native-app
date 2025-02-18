@@ -1,13 +1,20 @@
-import React from "react";
-import { View, Text, TouchableOpacity, Image, StyleSheet, ScrollView, StatusBar } from "react-native";
+// profile.js
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, ActivityIndicator, Image,  ScrollView, TouchableOpacity, StatusBar } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useRouter } from "expo-router";
 import { Icon } from "@rneui/themed";
 import { getStatusBarHeight } from "react-native-status-bar-height";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
-import { signOut } from "../../../store";
 
 
-const ProfileScreen = () => { 
+
+const ProfileScreen = () => {
+  const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
+
+
   const menuItems = [
     { id: 1, name: "Personal Information", description: "Edit your information", icon: "person-outline",route: "Account/personalinfo" },
     { id: 2, name: "Reports", description: "Reported Transactions", icon: "bar-chart-outline" },
@@ -17,20 +24,85 @@ const ProfileScreen = () => {
     { id: 6, name: "Help & Support", description: "Help or contact support", icon: "help-circle-outline",route: "Account/Support" },
     { id: 7, name: "Legal", description: "Help, Privacy & Security, Legal", icon: "document-text-outline" ,route: "Account/Privacy"},
   ];
-  const router = useRouter(); // Initialize the router
 
   const handleLogout = async () => {
-    const result = await signOut();
-    if (result.success) {
-      // Navigate to the login screen after logout.
-      router.replace("/login");
-    } else {
-      console.error("Logout error:", result.error);
-    }
+    await AsyncStorage.removeItem('token');
+    await AsyncStorage.removeItem('rawApiResponse'); // Clear old data
+    router.replace("/login");
   };
 
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const token = await AsyncStorage.getItem('token');
+        console.log("Token from AsyncStorage in profile page:", token);
+        if (!token) {
+          throw new Error("No access token found");
+        }
+  
+        const response = await fetch('https://insighthub.com.ng/api/user/index.php', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Token ${token}`,
+            'Accept': 'application/json'
+          },
+        });
+        
+        console.log("Response status:", response.status);
+        
+        const responseText = await response.text();
+        console.log("Response text:", responseText);
+        
+        let json;
+        try {
+          json = JSON.parse(responseText);
+        } catch (e) {
+          console.error("Error parsing JSON:", e);
+        }
+        
+        console.log("Raw API Response:", json);
+  
+        if (!json || json.status === "fail") {
+          console.error('Error:', json ? json.msg : "No data returned");
+          setProfile(null);
+        } else {
+          // Remove the status field and use the remaining keys as profile data.
+          const { status, ...profileData } = json;
+          setProfile(profileData);
+        }
+      } catch (error) {
+        console.error("Error fetching profile:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+  
+    fetchProfile();
+  }, []);
+  
+
+  if (loading) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator size="large" color="#7734eb" />
+      </View>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <View style={styles.center}>
+        <Text>Error loading profile.</Text>
+        <TouchableOpacity onPress={handleLogout}>
+          <Icon name="log-out-outline" type="ionicon" color="red" size={24} />
+          <Text>Logout</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
   return (
-     <View style={{paddingTop:getStatusBarHeight(),backgroundColor:'#fff',flex:1}}>
+    <View style={{paddingTop:getStatusBarHeight(),backgroundColor:'#fff',flex:1}}>
           <StatusBar
     translucent
     barStyle="dark-content"
@@ -47,7 +119,7 @@ const ProfileScreen = () => {
       {/* Profile Header */}
       <View style={styles.header}>
       <Image source={require("../../../images/Profilepic.png")} resizeMethod="contain" style={{width:80,height:80,borderRadius:30}}/>
-        <Text style={styles.userName}>Nur Muhass</Text>
+        <Text style={styles.userName}>{profile.sFname} {profile.sLname}</Text>
       </View>
 
       {/* Menu Options */}
