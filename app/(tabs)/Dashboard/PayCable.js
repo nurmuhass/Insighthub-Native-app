@@ -1,115 +1,297 @@
-import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, FlatList, Image, StatusBar } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { getStatusBarHeight } from "react-native-status-bar-height";
+// BuyCable.js
+
+import React, { useEffect, useState } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  FlatList,
+  StyleSheet,
+  ActivityIndicator,
+  Alert,
+  ScrollView
+} from "react-native";
+import { Picker } from "@react-native-picker/picker";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 
-const CableSubscription = () => {
-  const [selectedProvider, setSelectedProvider] = useState("dstv");
-  const [iucNumber, setIucNumber] = useState("");
-  const [selectedPlan, setSelectedPlan] = useState(null);
-  const walletBalance = 1401.8;
-    const router = useRouter();
-  const providers = [
-    { id: "dstv", name: "DSTV", image: require("../../../images/dstv.jpeg") },
-    { id: "gotv", name: "GOTV", image: require("../../../images/gotv.png") },
-    { id: "startimes", name: "Startimes", image: require("../../../images/startimes.jpeg") },
-  ];
+// Helper function to generate a transaction reference
+const generateTransRef = () => "CABLE" + Date.now();
 
-  const plans = {
-    dstv: [
-      { name: "DStv Padi", price: 3600 },
-      { name: "DStv Yanga", price: 5100 },
-      { name: "DStv Confam", price: 7500 },
-      { name: "DStv Asia", price: 12400 },
-      { name: "DStv Compact", price: 15700 },
-      { name: "DStv Compact Plus", price: 25000 },
-      { name: "DStv Premium", price: 42000 },
-    ],
-    gotv: [
-      { name: "GOtv Smallie", price: 1200 },
-      { name: "GOtv Jinja", price: 2700 },
-      { name: "GOtv Jolli", price: 3700 },
-      { name: "GOtv Max", price: 4900 },
-      { name: "GOtv Supa", price: 6400 },
-    ],
-    startimes: [
-      { name: "Startimes Nova", price: 1200 },
-      { name: "Startimes Basic", price: 2500 },
-      { name: "Startimes Smart", price: 3400 },
-      { name: "Startimes Classic", price: 4500 },
-      { name: "Startimes Super", price: 6500 },
-    ],
+const BuyCable = () => {
+  const router = useRouter();
+  
+  // State variables
+  const [cableProviders, setCableProviders] = useState([]);
+  const [cablePlans, setCablePlans] = useState([]);
+  const [filteredPlans, setFilteredPlans] = useState([]);
+  const [selectedProvider, setSelectedProvider] = useState("");
+  const [selectedPlan, setSelectedPlan] = useState("");
+  const [subscriptionType, setSubscriptionType] = useState("");
+  const [phone, setPhone] = useState("");
+  const [iucNumber, setIucNumber] = useState("");
+  const [amountToPay, setAmountToPay] = useState("");
+  const [cableDetails, setCableDetails] = useState(""); // For plan description
+  const [loading, setLoading] = useState(false);
+  
+  // --- Fetch cable providers and plans from API ---
+  useEffect(() => {
+    const fetchCableData = async () => {
+      try {
+        const token = await AsyncStorage.getItem("token");
+        if (!token) {
+          Alert.alert("Error", "No access token found");
+          return;
+        }
+        const response = await fetch("https://insighthub.com.ng/api/cabletv/getcable.php", {
+          method: "GET",
+          headers: {
+            "Accept": "application/json",
+            "Authorization": `Token ${token}`
+          }
+        });
+        const json = await response.json();
+        console.log("Cable API response:", json);
+        if (json.status === "success") {
+          setCableProviders(json.cableProviders || []);
+          setCablePlans(json.cablePlans || []);
+        } else {
+          Alert.alert("Error", json.msg || "Failed to load cable data");
+        }
+      } catch (error) {
+        console.error("Error fetching cable data:", error);
+        Alert.alert("Error", "An error occurred while fetching cable data");
+      }
+    };
+    fetchCableData();
+  }, []);
+  
+  // --- When a provider is selected, filter the cable plans ---
+  useEffect(() => {
+    if (!selectedProvider) {
+      setFilteredPlans([]);
+      setSelectedPlan("");
+      setAmountToPay("");
+      setCableDetails("");
+      return;
+    }
+    // Filter plans where the plan's cableprovider equals the selected provider id.
+    const filtered = cablePlans.filter(plan => plan.cableprovider == selectedProvider);
+    setFilteredPlans(filtered);
+    // Reset selected plan and price details
+    setSelectedPlan("");
+    setAmountToPay("");
+    setCableDetails("");
+  }, [selectedProvider, cablePlans]);
+  
+  // --- When a plan is selected, update Amount To Pay and Cable Details ---
+  const handlePlanChange = (planId) => {
+    setSelectedPlan(planId);
+    const plan = filteredPlans.find(p => p.cpId == planId);
+    if (plan) {
+      // Update the price (assumes plan.price holds the price)
+      setAmountToPay("N" + plan.price);
+      // Update cable details (for example, plan name with day info)
+      setCableDetails(`${plan.name} (${plan.day} Days)`);
+    } else {
+      setAmountToPay("");
+      setCableDetails("");
+    }
+  };
+
+  // --- Form validation and POST request for cable TV verification ---
+  const handleNext = async () => {
+    // Validate required fields
+    if (!selectedProvider) {
+      Alert.alert("Error", "Please select a cable provider");
+      return;
+    }
+    if (!selectedPlan) {
+      Alert.alert("Error", "Please select a cable plan");
+      return;
+    }
+    if (!subscriptionType) {
+      Alert.alert("Error", "Please select a subscription type");
+      return;
+    }
+    if (!phone) {
+      Alert.alert("Error", "Please enter your phone number");
+      return;
+    }
+    if (!iucNumber) {
+      Alert.alert("Error", "Please enter the IUC number");
+      return;
+    }
+    if (!amountToPay) {
+      Alert.alert("Error", "Amount to pay is not calculated");
+      return;
+    }
+    
+    const transRef = generateTransRef();
+    const payload = {
+      provider: selectedProvider,
+      cableplan: selectedPlan,
+      subtype: subscriptionType,
+      phone: phone,
+      iucnumber: iucNumber,
+      amounttopay: amountToPay,
+      ref: transRef,
+      cabledetails: cableDetails
+    };
+    
+    setLoading(true);
+    try {
+      const token = await AsyncStorage.getItem("token");
+      if (!token) {
+        Alert.alert("Error", "No access token found");
+        setLoading(false);
+        return;
+      }
+      const response = await fetch("https://insighthub.com.ng/api/cabletv/verify/index.php", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Token ${token}`,
+          "Accept": "application/json"
+        },
+        body: JSON.stringify(payload)
+      });
+      const resJson = await response.json();
+      console.log("Cable Verification Response:", resJson);
+      if (resJson.status === "success") {
+        Alert.alert("Success", "Verification successful");
+        // Optionally navigate to a confirmation screen passing resJson data:
+        router.push({
+          pathname: "Dashboard/ConfirmCable",
+          params: { verificationData: JSON.stringify(resJson) }
+        });
+      } else {
+        Alert.alert("Error", resJson.msg || "Verification failed");
+      }
+    } catch (error) {
+      console.error("Error verifying cable data:", error);
+      Alert.alert("Error", "An error occurred while verifying cable details");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <View style={{ paddingTop: getStatusBarHeight(), backgroundColor: "#fff", flex: 1, padding: 20 }}>
-      <StatusBar translucent barStyle="dark-content" backgroundColor="rgba(255, 255, 255, 0)" />
-
-      {/* Header */}
-      <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 20 }}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} color="black" />
-        </TouchableOpacity>
-        <Text style={{ fontSize: 20, fontWeight: "bold", marginLeft: 10 }}>Cable Sub</Text>
+    <ScrollView style={styles.container}>
+      <Text style={styles.header}>Cable Subscription</Text>
+      
+      {/* Cable Provider Picker */}
+      <Text style={styles.labelText}>Select Cable Provider</Text>
+      <View style={styles.pickerContainer}>
+        <Picker
+          selectedValue={selectedProvider}
+          onValueChange={(itemValue) => setSelectedProvider(itemValue)}
+          style={styles.picker}
+        >
+          <Picker.Item label="Select Provider" value="" />
+          {cableProviders.map((provider) => (
+            <Picker.Item
+              key={provider.cId}
+              label={provider.provider}
+              value={provider.cId}
+            />
+          ))}
+        </Picker>
       </View>
-
-      {/* Wallet Balance */}
-      <View style={{ flexDirection: "row", justifyContent: "space-between", padding: 10, backgroundColor: "#f1f1f1", borderRadius: 5 }}>
-        <Text>Wallet Balance</Text>
-        <Text style={{ color: "green", fontWeight: "bold" }}>N{walletBalance.toFixed(2)}</Text>
+      
+      {/* Cable Plan Picker */}
+      <Text style={styles.labelText}>Select Cable Plan</Text>
+      <View style={styles.pickerContainer}>
+        <Picker
+          selectedValue={selectedPlan}
+          onValueChange={(itemValue) => handlePlanChange(itemValue)}
+          style={styles.picker}
+        >
+          {filteredPlans.length === 0 ? (
+            <Picker.Item label="No plans available" value="" />
+          ) : (
+            filteredPlans.map((plan) => (
+              <Picker.Item
+                key={plan.cpId}
+                label={`${plan.name} (N${plan.price}) (${plan.day} Days)`}
+                value={plan.cpId}
+              />
+            ))
+          )}
+        </Picker>
       </View>
-
-      {/* Select Cable Provider */}
-      <Text style={{ marginTop: 20, fontWeight: "bold" }}>Select Cable</Text>
-      <View style={{ flexDirection: "row", marginVertical: 10,justifyContent:'space-between' }}>
-        {providers.map((provider) => (
-          <TouchableOpacity
-            key={provider.id}
-            onPress={() => setSelectedProvider(provider.id)}
-            style={{ marginRight: 10, borderWidth: selectedProvider === provider.id ? 2 : 0, borderColor: "red", borderRadius: 5 }}
-          >
-            <Image source={provider.image} style={{ width: 60, height: 50 }} />
-          </TouchableOpacity>
-        ))}
+      
+      {/* Subscription Type Picker */}
+      <Text style={styles.labelText}>Subscription Type</Text>
+      <View style={styles.pickerContainer}>
+        <Picker
+          selectedValue={subscriptionType}
+          onValueChange={(itemValue) => setSubscriptionType(itemValue)}
+          style={styles.picker}
+        >
+          <Picker.Item label="Select Type" value="" />
+          <Picker.Item label="Change" value="change" />
+          <Picker.Item label="Renew" value="renew" />
+        </Picker>
       </View>
-
-      {/* IUC Number */}
-      <Text style={{ fontWeight: "bold" }}>IUC Number</Text>
+      
+      {/* Customer Phone Number */}
+      <Text style={styles.labelText}>Customer Phone Number</Text>
       <TextInput
-        style={{ borderWidth: 1, borderColor: "#ccc", padding: 10, borderRadius: 5, marginTop: 5 }}
-        placeholder="Enter IUC Number"
+        style={styles.input}
+        placeholder="Enter phone number"
+        keyboardType="phone-pad"
+        value={phone}
+        onChangeText={setPhone}
+      />
+      
+      {/* IUC Number */}
+      <Text style={styles.labelText}>IUC Number</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Enter IUC number"
         keyboardType="numeric"
         value={iucNumber}
         onChangeText={setIucNumber}
       />
-
-      {/* Choose Subscription Plan */}
-      <Text style={{ marginTop: 20, fontWeight: "bold" }}>Choose a Plan</Text>
-      <FlatList
-        data={plans[selectedProvider]}
-        numColumns={2}
-        keyExtractor={(item) => item.name}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            onPress={() => setSelectedPlan(item.name)}
-            style={{ flex: 1, padding: 15, margin: 5, backgroundColor: selectedPlan === item.name ? "#7734eb" : "#f1f1f1", borderRadius: 5 }}
-          >
-            <Text style={{ color: selectedPlan === item.name ? "white" : "black", textAlign: "center" }}>{item.name}</Text>
-            <Text style={{ color: selectedPlan === item.name ? "white" : "black", textAlign: "center" }}>N{item.price.toLocaleString()}</Text>
-          </TouchableOpacity>
-        )}
+      
+      {/* Amount To Pay */}
+      <Text style={styles.labelText}>Amount To Pay</Text>
+      <TextInput
+        style={styles.input}
+        value={amountToPay}
+        editable={false}
       />
-
-      {/* Next Button */}
-      <TouchableOpacity
-        style={{ padding: 15, backgroundColor: "#7734eb", borderRadius: 5, marginTop: 20 }}
-        onPress={() => alert(`Proceeding with ${selectedPlan}`)}
-      >
-        <Text style={{ color: "white", textAlign: "center" }}>Next</Text>
+      
+      {/* Hidden field: Cable Details (can be shown if needed) */}
+      <Text style={styles.labelText}>Plan Details</Text>
+      <TextInput
+        style={styles.input}
+        value={cableDetails}
+        editable={false}
+      />
+      
+      <TouchableOpacity style={styles.button} onPress={handleNext} disabled={loading}>
+        {loading ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text style={styles.buttonText}>Next</Text>
+        )}
       </TouchableOpacity>
-    </View>
+    </ScrollView>
   );
 };
 
-export default CableSubscription;
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: "#fff", padding: 20 },
+  header: { fontSize: 24, fontWeight: "bold", textAlign: "center", marginBottom: 20, color: "#7734eb" },
+  labelText: { fontSize: 16, fontWeight: "bold", marginBottom: 5, color: "#333" },
+  pickerContainer: { borderWidth: 1, borderColor: "#ccc", borderRadius: 8, marginBottom: 15 },
+  picker: { height: 50, width: "100%" },
+  input: { borderWidth: 1, borderColor: "#ccc", borderRadius: 8, padding: 12, marginBottom: 15, fontSize: 16 },
+  button: { backgroundColor: "#7734eb", padding: 15, borderRadius: 8, alignItems: "center", marginTop: 10 },
+  buttonText: { color: "#fff", fontSize: 16, fontWeight: "bold" }
+});
+
+export default BuyCable;
