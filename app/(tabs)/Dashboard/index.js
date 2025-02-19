@@ -26,7 +26,7 @@ const index = () => {
     const fetchProfile = async () => {
       try {
         const token = await AsyncStorage.getItem('token');
-        console.log("Token from AsyncStorage in profile page:", token);
+        console.log("Token from AsyncStorage in home page:", token);
         if (!token) {
           throw new Error("No access token found");
         }

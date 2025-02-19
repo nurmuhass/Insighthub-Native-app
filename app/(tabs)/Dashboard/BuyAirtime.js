@@ -1,118 +1,341 @@
-import { AntDesign, Ionicons, MaterialIcons } from "@expo/vector-icons";
+// BuyAirtime.js
+
+import React, { useEffect, useState } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  Alert,
+  StyleSheet,
+  Switch,
+  ActivityIndicator,
+  ScrollView
+} from "react-native";
+import { Picker } from "@react-native-picker/picker";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
-import { StatusBar } from "react-native";
-import { View, Text, TextInput, TouchableOpacity, Image, Alert } from "react-native";
-import { getStatusBarHeight } from "react-native-status-bar-height";
 
-const BuyAirtime = () => {
-  const [selectedNetwork, setSelectedNetwork] = useState(null);
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [walletBalance, setWalletBalance] = useState(1197.8);
-    const router = useRouter();
-  const networks = [
-    { id: "mtn", name: "MTN", logo: require("../../../images/mtn.png") },
-    { id: "glo", name: "Glo", logo: require("../../../images/glo.jpeg") },
-    { id: "airtel", name: "Airtel", logo: require("../../../images/airtel.jpeg") },
-    { id: "9mobile", name: "9mobile", logo: require("../../../images/9mobile.png") },
-  ];
+// Helper function to generate a transaction reference
+const generateTransRef = () => "TRANS" + Date.now();
 
-  const handleBuyData = () => {
-    if (!selectedNetwork || !phoneNumber) {
-      Alert.alert("Error", "Please select a network and enter a phone number.");
+const BuyAirtimeScreen = () => {
+  const router = useRouter();
+
+  // State variables
+  const [networks, setNetworks] = useState([]);
+  const [airtimeDiscountData, setAirtimeDiscountData] = useState([]);
+  const [selectedNetwork, setSelectedNetwork] = useState("");
+  const [availableAirtimeTypes, setAvailableAirtimeTypes] = useState([]);
+  const [selectedAirtimeType, setSelectedAirtimeType] = useState("");
+  const [phone, setPhone] = useState("");
+  const [airtimeAmount, setAirtimeAmount] = useState(""); // user-entered amount
+  const [amountToPay, setAmountToPay] = useState("");    // calculated value
+  const [discountDisplay, setDiscountDisplay] = useState(""); // e.g. "20%"
+  const [disableValidator, setDisableValidator] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [userType, setUserType] = useState("1"); // sType ("1"=regular, "2"=agent, "3"=vendor)
+
+  // --- Fetch Networks and Airtime Discount Data on mount ---
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const token = await AsyncStorage.getItem("token");
+        if (!token) {
+          Alert.alert("Error", "No access token found");
+          return;
+        }
+        // Retrieve the rawApiResponse from AsyncStorage
+        const rawApiResponse = await AsyncStorage.getItem("rawApiResponse");
+        
+        if (rawApiResponse) {
+          try {
+            // Parse the rawApiResponse JSON string into an object
+            const parsedResponse = JSON.parse(rawApiResponse);
+      
+            // Extract the sType value from the parsed object
+            const storedSType = parsedResponse.sType;
+      
+            if (storedSType) {
+              setUserType(storedSType);
+              console.log("User sType from storage:", storedSType);
+            } else {
+              console.log("sType not found in rawApiResponse; defaulting to 1");
+            }
+          } catch (error) {
+            console.error("Error parsing rawApiResponse:", error);
+          }
+        } else {
+          console.log("rawApiResponse not found in storage; defaulting to 1");
+        }
+      
+      
+        const response = await fetch("https://insighthub.com.ng/api/airtime/getairtimediscount.php", {
+          method: "GET",
+          headers: {
+            "Accept": "application/json",
+            "Authorization": `Token ${token}`
+          }
+        });
+        const json = await response.json();
+        // Expect json to be in the form:
+        // { status: "success", networks: [...], airtimeDiscount: [...] }
+        if (json.status === "success") {
+          // Filter networks to only those with networkStatus "On"
+          const activeNetworks = json.networks.filter(net => net.networkStatus === "On");
+          setNetworks(activeNetworks);
+          setAirtimeDiscountData(json.airtimeDiscount || []);
+        } else {
+          Alert.alert("Error", "Could not load airtime data");
+        }
+      } catch (error) {
+        console.error("Error fetching airtime data:", error);
+        Alert.alert("Error", "An error occurred while fetching airtime data.");
+      }
+    };
+    fetchData();
+  }, []);
+
+  // --- When a network is selected, update available airtime types ---
+  useEffect(() => {
+    if (!selectedNetwork) {
+      setAvailableAirtimeTypes([]);
+      setSelectedAirtimeType("");
       return;
     }
-    Alert.alert("Success", `Data purchase successful for ${phoneNumber} on ${selectedNetwork.name}.`);
+    // Find the selected network object
+    const netObj = networks.find(net => net.nId == selectedNetwork);
+    if (!netObj) return;
+
+    let types = [];
+    // Check network attributes (adjust property names as per your backend)
+    if (netObj.vtuStatus === "On") types.push("VTU");
+    if (netObj.sharesellStatus === "On") types.push("Share And Sell");
+
+    setAvailableAirtimeTypes(types);
+    // Auto-select the first available type if not already selected:
+    if (types.length > 0) {
+      setSelectedAirtimeType(types[0]);
+    } else {
+      setSelectedAirtimeType("");
+    }
+    // Reset calculated fields
+    setAirtimeAmount("");
+    setAmountToPay("");
+    setDiscountDisplay("");
+  }, [selectedNetwork, networks]);
+
+  // --- When airtime amount changes, recalc discount and amount to pay ---
+  useEffect(() => {
+    // Only calculate if both a network and airtime type are selected, and amount is provided.
+    if (!selectedNetwork || !selectedAirtimeType || !airtimeAmount) {
+      setAmountToPay("");
+      setDiscountDisplay("");
+      return;
+    }
+    // Loop through airtimeDiscountData to find a matching discount rule
+    let discountValue = 0;
+    for (let i = 0; i < airtimeDiscountData.length; i++) {
+      const rule = airtimeDiscountData[i];
+      // Compare the rule's network and type with selected values.
+      // (Assumes rule.aNetwork equals network id and rule.aType equals airtime type)
+      if (rule.aNetwork == selectedNetwork && rule.aType === selectedAirtimeType) {
+        // Determine discount based on user type.
+        if (userType === "3") {
+          discountValue = parseInt(rule.aVendorDiscount);
+        } else if (userType === "2") {
+          discountValue = parseInt(rule.aAgentDiscount);
+        } else {
+          discountValue = parseInt(rule.aUserDiscount);
+        }
+        break;
+      }
+    }
+    // If discountValue is not found, default to 100% (i.e., no discount)
+    if (!discountValue) discountValue = 100;
+    // Calculate amount to pay: if discountValue represents the percentage to charge,
+    // then amountToPay = (airtimeAmount * discountValue) / 100
+    const calculatedAmount = (parseFloat(airtimeAmount) * discountValue) / 100;
+    // Calculate displayed discount percentage (assuming discount is 100 - discountValue)
+    const discountDisplayVal = 100 - discountValue;
+    setAmountToPay("N" + calculatedAmount);
+    setDiscountDisplay(discountDisplayVal + "%");
+  }, [airtimeAmount, selectedNetwork, selectedAirtimeType, airtimeDiscountData, userType]);
+
+  // --- Handle Airtime Purchase Submission ---
+  const handleBuyAirtime = async () => {
+    if (!selectedNetwork) {
+      Alert.alert("Error", "Please select a network");
+      return;
+    }
+    if (!selectedAirtimeType) {
+      Alert.alert("Error", "Please select an airtime type");
+      return;
+    }
+    if (!phone) {
+      Alert.alert("Error", "Please enter a phone number");
+      return;
+    }
+    if (!airtimeAmount) {
+      Alert.alert("Error", "Please enter the airtime amount");
+      return;
+    }
+    // Generate a transaction reference
+    const transRef = generateTransRef();
+
+    setLoading(true);
+    try {
+      const token = await AsyncStorage.getItem("token");
+      if (!token) {
+        Alert.alert("Error", "No access token found");
+        setLoading(false);
+        return;
+      }
+      // Build the payload. Adjust keys as expected by your backend.
+      const payload = {
+        network: selectedNetwork,
+        phone: phone,
+        amount: airtimeAmount,
+        airtime_type: selectedAirtimeType, // "VTU" or "Share And Sell"
+        ported_number: disableValidator ? "true" : "false",
+        ref: transRef
+      };
+
+      const response = await fetch("https://insighthub.com.ng/api/airtime/index.php", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Token ${token}`,
+          "Accept": "application/json"
+        },
+        body: JSON.stringify(payload)
+      });
+      const resJson = await response.json();
+      console.log("Buy Airtime Response:", resJson);
+      if (resJson.status === "success") {
+        Alert.alert("Success", "Airtime purchase successful");
+        // Optionally navigate to another screen or clear the form.
+      } else {
+        Alert.alert("Error", resJson.msg || "Airtime purchase failed");
+      }
+    } catch (error) {
+      console.error("Error buying airtime:", error);
+      Alert.alert("Error", "An error occurred while processing your request");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-       <View style={{paddingTop:getStatusBarHeight(),backgroundColor:'#fff',flex:1,}}>
-           <StatusBar
-     translucent
-     barStyle="dark-content"
-     backgroundColor="rgba(255, 255, 255, 0)" // Transparent white color
-   />
-
-<View style={{    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 16,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',}}>
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <TouchableOpacity onPress={() => router.back()} style={{   }}>
-              <Ionicons name="arrow-back" size={24} color="#000" />
-            </TouchableOpacity>
-         
-          </View>
-
-          <Text style={{   fontSize: 20,
-    fontWeight: 'bold'}}>Buy Airtime</Text>
-
-          {/* Share Button */}
-          <TouchableOpacity onPress={{}} style={{    padding: 7,
-    backgroundColor: '#2899ff',
-    borderRadius: 5,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: 60,
-    height: 35,}}>
-            <Text style={{ color: '#fff'}}>Next</Text>
-          </TouchableOpacity>
-        </View>
-
-
-      {/* Wallet Balance */}
-      <View style={{ flexDirection: "row", justifyContent: "space-between", padding: 10, backgroundColor: "#f1f1f1", borderRadius: 5, marginBottom: 20,width:'96%',alignItems:'center' ,alignSelf:'center',marginVertical:8}}>
-        <View style={{ flexDirection: "row", alignItems: "center" }}>
-        <AntDesign name="wallet" size={24} color="black" />
-        <Text style={{ fontWeight: "bold" ,marginLeft:5}}>Wallet Balance</Text>
-        </View>
-        <Text style={{ color: "green", fontWeight: "bold" }}>N{walletBalance.toFixed(2)}</Text>
+    <ScrollView style={styles.container}>
+      <Text style={styles.header}>Buy Airtime</Text>
+      
+      {/* Network Picker */}
+      <Text style={styles.subHeader}>Select Network</Text>
+      <View style={styles.pickerContainer}>
+        <Picker
+          selectedValue={selectedNetwork}
+          onValueChange={(itemValue) => setSelectedNetwork(itemValue)}
+          style={styles.picker}
+        >
+          <Picker.Item label="Select Network" value="" />
+          {networks.map((net) => (
+            <Picker.Item
+              key={net.nId}
+              label={net.network}
+              value={net.nId}
+              // Optionally, you can pass extra data using a custom field if needed.
+            />
+          ))}
+        </Picker>
       </View>
-<View style={{marginHorizontal:10}}>
-
-
-      {/* Select Network */}
-      <Text style={{ marginBottom: 10 }}>Select Network</Text>
-      <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-        {networks.map((network) => (
-          <TouchableOpacity key={network.id} onPress={() => setSelectedNetwork(network)}>
-            <Image source={network.logo} resizeMode="contain" style={{ width: 50, height: 50, opacity: selectedNetwork?.id === network.id ? 1 : 0.5 }} />
-          </TouchableOpacity>
-        ))}
+      
+      {/* Airtime Type Picker */}
+      <Text style={styles.subHeader}>Select Airtime Type</Text>
+      <View style={styles.pickerContainer}>
+        <Picker
+          selectedValue={selectedAirtimeType}
+          onValueChange={(itemValue) => setSelectedAirtimeType(itemValue)}
+          style={styles.picker}
+        >
+          {availableAirtimeTypes.length === 0 ? (
+            <Picker.Item label="Select Type" value="" />
+          ) : (
+            availableAirtimeTypes.map((type) => (
+              <Picker.Item key={type} label={type} value={type} />
+            ))
+          )}
+        </Picker>
       </View>
-
+      
       {/* Phone Number Input */}
-
-
-      <Text style={{ marginTop: 20 }}>Phone Number</Text>
-      <View style={{  alignItems: "center" }}>
+      <Text style={styles.subHeader}>Phone Number</Text>
       <TextInput
-        style={{ borderWidth: 1, borderColor: "#ccc", padding: 10, borderRadius: 5, marginTop: 5 ,width:'100%'}}
-        placeholder="Enter Phone Number"
-        keyboardType="numeric"
-        value={phoneNumber}
-        onChangeText={setPhoneNumber}
+        style={styles.input}
+        placeholder="Enter phone number"
+        keyboardType="phone-pad"
+        value={phone}
+        onChangeText={setPhone}
       />
-      <MaterialIcons name="contacts" size={24} color="black"  style={{position:'absolute',top:10,right:5}}/>
-      </View>
-  
+      
+      {/* Airtime Amount Input */}
+      <Text style={styles.subHeader}>Amount</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Enter Amount"
+        keyboardType="numeric"
+        value={airtimeAmount}
+        onChangeText={setAirtimeAmount}
+      />
+      
+      {/* Calculated Amount To Pay */}
+      <Text style={styles.subHeader}>Amount To Pay</Text>
+      <TextInput
+        style={styles.input}
+        value={amountToPay}
+        editable={false}
+      />
+      
+      {/* Discount Display */}
+      <Text style={styles.subHeader}>Discount</Text>
+      <TextInput
+        style={styles.input}
+        value={discountDisplay}
+        editable={false}
+      />
 
-      {/* Buy Now Button */}
-      <TouchableOpacity
-        style={{ backgroundColor: selectedNetwork && phoneNumber ? "#d9534f" : "#ccc", padding: 15, borderRadius: 5, marginTop: 20 }}
-        onPress={handleBuyData}
-        disabled={!selectedNetwork || !phoneNumber}
-      >
-        <Text style={{ color: "white", textAlign: "center" }}>Buy Now</Text>
+      {/* Disable Number Validator Switch */}
+      <View style={styles.switchContainer}>
+        <Text style={styles.label}>Disable Number Validator</Text>
+        <Switch
+          value={disableValidator}
+          onValueChange={setDisableValidator}
+        />
+      </View>
+      
+      {/* Buy Airtime Button */}
+      <TouchableOpacity style={styles.button} onPress={handleBuyAirtime} disabled={loading}>
+        {loading ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text style={styles.buttonText}>Buy Airtime</Text>
+        )}
       </TouchableOpacity>
-      </View>
-
-    </View>
+    </ScrollView>
   );
 };
 
-export default BuyAirtime;
+const styles = StyleSheet.create({
+  container: { flex: 1, padding: 20, backgroundColor: "#fff" },
+  header: { fontSize: 24, fontWeight: "bold", textAlign: "center", marginBottom: 10, color: "#7734eb" },
+  subHeader: { fontSize: 16, marginTop: 10, marginBottom: 5, fontWeight: "bold", color: "#333" },
+  pickerContainer: { borderWidth: 1, borderColor: "#ccc", borderRadius: 8, marginBottom: 15 },
+  picker: { height: 50, width: "100%" },
+  input: { borderWidth: 1, borderColor: "#ccc", padding: 12, borderRadius: 8, marginBottom: 15, fontSize: 16 },
+  switchContainer: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 15 },
+  label: { fontSize: 14, fontWeight: "bold", color: "#333" },
+  button: { backgroundColor: "#7734eb", padding: 15, borderRadius: 8, alignItems: "center", marginBottom: 20 },
+  buttonText: { color: "#fff", fontSize: 16, fontWeight: "bold" },
+});
+
+export default BuyAirtimeScreen;
