@@ -6,6 +6,7 @@ import { useRouter } from "expo-router";
 import { Icon } from "@rneui/themed";
 import { getStatusBarHeight } from "react-native-status-bar-height";
 import { Ionicons } from "@expo/vector-icons";
+import { signOut } from '../../../store';
 
 
 
@@ -26,8 +27,7 @@ const ProfileScreen = () => {
   ];
 
   const handleLogout = async () => {
-    await AsyncStorage.removeItem('token');
-    await AsyncStorage.removeItem('rawApiResponse'); // Clear old data
+    signOut();
     router.replace("/login");
   };
 

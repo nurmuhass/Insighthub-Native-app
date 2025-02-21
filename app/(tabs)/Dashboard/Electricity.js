@@ -113,7 +113,8 @@ const ElectricityScreen = () => {
       meternumber: meterNumber,
       amount: amount,
       amounttopay: amountToPay,
-      ref: transRef
+      ref: transRef,
+      providerName: providers.find(p => p.eId === selectedProvider)?.provider || "N/A"
     };
     
     setLoading(true);

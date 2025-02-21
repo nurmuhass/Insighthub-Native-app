@@ -130,7 +130,7 @@ const moreServices = [
   { id: 4, name: "Cable Tv", icon: <MaterialIcons name="live-tv" size={30} color="#7734eb" />, route: "Dashboard/PayCable"},
   { id: 5, name: "Edu Pins", icon: <FontAwesome5 name="book-open" size={30} color="#7734eb" /> , route: "Dashboard/EduPin"},
   { id: 6, name: "Bulk SMS", icon: <FontAwesome5 name="sms" size={30} color="#7734eb" /> },
-  { id: 7, name: "Recharge Pin", icon: <FontAwesome5 name="credit-card" size={30} color="#7734eb" /> },
+  { id: 7, name: "Recharge Pin", icon: <FontAwesome5 name="credit-card" size={30} color="#7734eb" /> ,route: "Dashboard/RechargeCard"},
   { id: 8, name: "Airtime Swap", icon: <FontAwesome5 name="exchange-alt" size={30} color="#7734eb" /> , route: "Dashboard/AirtimeSwap" },
 ];
   const [modalVisible, setModalVisible] = useState(false);

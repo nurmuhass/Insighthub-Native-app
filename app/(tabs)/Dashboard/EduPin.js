@@ -1,71 +1,206 @@
-import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, FlatList, Image, StatusBar } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { getStatusBarHeight } from "react-native-status-bar-height";
-import { useRouter } from "expo-router";
+// BuyExamPin.js
 
-const EduPin = () => {
-  const [selectedProvider, setSelectedProvider] = useState("WAEC");
-  const [Quantity, setQuantity] = useState("");
-  const walletBalance = 1401.8;
-    const router = useRouter();
-  const providers = [
-    { id: "WAEC", name: "WAEC", image: require("../../../images/waec.jpeg") },
-    { id: "NECO", name: "NECO", image: require("../../../images/neco.jpeg") },
-  ];
+import React, { useEffect, useState } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  ActivityIndicator,
+  StyleSheet,
+  ScrollView,
+  Alert
+} from 'react-native';
+import { Picker } from '@react-native-picker/picker';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useRouter } from 'expo-router';
+
+// Helper function to generate a transaction reference
+const generateTransRef = () => "EXAMPIN" + Date.now();
+
+const BuyExamPin = () => {
+  const router = useRouter();
+  
+  // State variables
+  const [examProviders, setExamProviders] = useState([]);
+  const [selectedProvider, setSelectedProvider] = useState("");
+  const [quantity, setQuantity] = useState("");
+  const [amountToPay, setAmountToPay] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  // Fetch exam providers on mount
+  useEffect(() => {
+    const fetchExamProviders = async () => {
+      try {
+        const token = await AsyncStorage.getItem("token");
+        if (!token) {
+          Alert.alert("Error", "No access token found");
+          return;
+        }
+        const response = await fetch("https://insighthub.com.ng/api/exam/getexamprovider.php", {
+          method: "GET",
+          headers: {
+            "Accept": "application/json",
+            "Authorization": `Token ${token}`
+          }
+        });
+        const json = await response.json();
+        console.log("Exam Providers API response:", json);
+        if (json.status === "success") {
+          setExamProviders(json.examProviders || []);
+        } else {
+          Alert.alert("Error", json.msg || "Failed to load exam providers");
+        }
+      } catch (error) {
+        console.error("Error fetching exam providers:", error);
+        Alert.alert("Error", "An error occurred while fetching exam providers");
+      }
+    };
+    fetchExamProviders();
+  }, []);
+  
+  // When quantity or selected provider changes, calculate amountToPay
+  useEffect(() => {
+    if (!selectedProvider || !quantity) {
+      setAmountToPay("");
+      return;
+    }
+    // Find the selected provider details
+    const provider = examProviders.find(p => p.eId == selectedProvider);
+    if (provider) {
+      const price = parseFloat(provider.price) || 0;
+
+      
+      const qty = parseFloat(quantity) || 0;
+      console.log("Price:", price, "Quantity:", qty);
+      const total = price * qty;
+      console.log("Calculated Total:", total);
+      setAmountToPay("N" + total);
+    } else {
+      setAmountToPay("");
+    }
+  }, [selectedProvider, quantity, examProviders]);
+  
+  // Handle purchase submission
+  const handlePurchase = async () => {
+    // Validate required fields
+    if (!selectedProvider) {
+      Alert.alert("Error", "Please select an exam provider");
+      return;
+    }
+    if (!quantity || parseFloat(quantity) <= 0) {
+      Alert.alert("Error", "Please enter a valid quantity");
+      return;
+    }
+    if (!amountToPay) {
+      Alert.alert("Error", "Amount to pay is not calculated");
+      return;
+    }
+    
+    const transRef = generateTransRef();
+    const payload = {
+      provider: selectedProvider,
+      quantity: quantity,
+      amount: amountToPay.replace("N", ""), // Remove currency symbol
+      ref: transRef
+    };
+    
+    setLoading(true);
+    try {
+      const token = await AsyncStorage.getItem("token");
+      if (!token) {
+        Alert.alert("Error", "No access token found");
+        setLoading(false);
+        return;
+      }
+      const response = await fetch("https://insighthub.com.ng/api/exam/index.php", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Token ${token}`,
+          "Accept": "application/json"
+        },
+        body: JSON.stringify(payload)
+      });
+      const resJson = await response.json();
+      console.log("Exam Pin Verification Response:", resJson);
+      if (resJson.status === "success") {
+        Alert.alert("Success", "Exam Pin purchase verification successful");
+        // Navigate to a confirmation page, passing the response data
+  
+      } else {
+        Alert.alert("Error", resJson.msg || "Exam Pin purchase verification failed");
+      }
+    } catch (error) {
+      console.error("Error purchasing exam pin:", error);
+      Alert.alert("Error", "An error occurred while processing your request");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <View style={{ paddingTop: getStatusBarHeight(), backgroundColor: "#fff", flex: 1, padding: 20 }}>
-      <StatusBar translucent barStyle="dark-content" backgroundColor="rgba(255, 255, 255, 0)" />
-
-      {/* Header */}
-      <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 20 }}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} color="black" />
-        </TouchableOpacity>
-        <Text style={{ fontSize: 20, fontWeight: "bold", marginLeft: 10 }}>Education Pin</Text>
+    <ScrollView style={styles.container}>
+      <Text style={styles.header}>Purchase Exam Pin</Text>
+      
+      {/* Exam Provider Picker */}
+      <Text style={styles.label}>Select Exam Provider</Text>
+      <View style={styles.pickerContainer}>
+        <Picker
+          selectedValue={selectedProvider}
+          onValueChange={(itemValue) => setSelectedProvider(itemValue)}
+          style={styles.picker}
+        >
+          <Picker.Item label="Select Provider" value="" />
+          {examProviders.map(provider => (
+            <Picker.Item 
+              key={provider.eId} 
+              label={provider.provider} 
+              value={provider.eId}
+              // Optionally, include providerprice as needed
+            />
+          ))}
+        </Picker>
       </View>
-
-      {/* Wallet Balance */}
-      <View style={{ flexDirection: "row", justifyContent: "space-between", padding: 10, backgroundColor: "#f1f1f1", borderRadius: 5 }}>
-        <Text>Wallet Balance</Text>
-        <Text style={{ color: "green", fontWeight: "bold" }}>N{walletBalance.toFixed(2)}</Text>
-      </View>
-
-      {/* Select Cable Provider */}
-      <Text style={{ marginTop: 20, fontWeight: "bold" }}>Education Pin</Text>
-      <View style={{ flexDirection: "row", marginVertical: 10,justifyContent:'space-evenly' }}>
-        {providers.map((provider) => (
-          <TouchableOpacity
-            key={provider.id}
-            onPress={() => setSelectedProvider(provider.id)}
-            style={{ marginRight: 10, borderWidth: selectedProvider === provider.id ? 2 : 0, borderColor: "red", borderRadius: 5 }}
-          >
-            <Image source={provider.image} style={{ width: 60, height: 50 }} />
-          </TouchableOpacity>
-        ))}
-      </View>
-
-      {/* Quantity*/}
-      <Text style={{ fontWeight: "bold" }}>Quantity</Text>
+      
+      {/* Quantity Input */}
+      <Text style={styles.label}>Quantity</Text>
       <TextInput
-        style={{ borderWidth: 1, borderColor: "#ccc", padding: 10, borderRadius: 5, marginTop: 5 }}
-        placeholder="Quantity"
+        style={styles.input}
+        placeholder="Enter Quantity"
         keyboardType="numeric"
-        value={Quantity}
+        value={quantity}
         onChangeText={setQuantity}
       />
-
-     
-      {/* Next Button */}
-      <TouchableOpacity
-        style={{ padding: 15, backgroundColor: "#7734eb", borderRadius: 5, marginTop: 20 }}
-        onPress={() => alert(`Proceeding with ${selectedPlan}`)}
-      >
-        <Text style={{ color: "white", textAlign: "center" }}>Next</Text>
+      
+      {/* Amount To Pay Display */}
+      <Text style={styles.label}>Amount To Pay</Text>
+      <TextInput
+        style={styles.input}
+        value={amountToPay}
+        editable={false}
+      />
+      
+      <TouchableOpacity style={styles.button} onPress={handlePurchase} disabled={loading}>
+        {loading ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text style={styles.buttonText}>Purchase Pin</Text>
+        )}
       </TouchableOpacity>
-    </View>
+    </ScrollView>
   );
 };
 
-export default EduPin;
+const styles = StyleSheet.create({
+  container: { flex: 1, padding: 20, backgroundColor: "#fff" },
+  header: { fontSize: 24, fontWeight: "bold", textAlign: "center", marginBottom: 20, color: "#7734eb" },
+  label: { fontSize: 16, fontWeight: "bold", marginBottom: 5, color: "#333" },
+  pickerContainer: { borderWidth: 1, borderColor: "#ccc", borderRadius: 8, marginBottom: 15 },
+  picker: { height: 50, width: "100%" },
+  input: { borderWidth: 1, borderColor: "#ccc", borderRadius: 8, padding: 12, marginBottom: 15, fontSize: 16 },
+  button: { backgroundColor: "#7734eb", padding: 15, borderRadius: 8, alignItems: "center", marginTop: 10 },
+  buttonText: { color: "#fff", fontSize: 16, fontWeight: "bold" }
+});
+
+export default BuyExamPin;

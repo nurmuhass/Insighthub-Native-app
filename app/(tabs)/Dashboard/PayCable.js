@@ -137,7 +137,8 @@ const BuyCable = () => {
       iucnumber: iucNumber,
       amounttopay: amountToPay,
       ref: transRef,
-      cabledetails: cableDetails
+      cabledetails: cableDetails,
+      providerName: cableProviders.find(p => p.cId == selectedProvider)?.provider || "N/A"
     };
     
     setLoading(true);
@@ -160,11 +161,10 @@ const BuyCable = () => {
       const resJson = await response.json();
       console.log("Cable Verification Response:", resJson);
       if (resJson.status === "success") {
-        Alert.alert("Success", "Verification successful");
-        // Optionally navigate to a confirmation screen passing resJson data:
+        const combinedData = { ...payload, Customer_Name: resJson.Customer_Name };
         router.push({
-          pathname: "Dashboard/ConfirmCable",
-          params: { verificationData: JSON.stringify(resJson) }
+          pathname: "Dashboard/ConfirmPayCable",
+          params: { verificationData: JSON.stringify(combinedData) }
         });
       } else {
         Alert.alert("Error", resJson.msg || "Verification failed");

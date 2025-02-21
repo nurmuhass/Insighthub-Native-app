@@ -1,3 +1,4 @@
+// BuyData page
 import React, { useEffect, useState } from "react";
 import {
   View,
@@ -13,6 +14,7 @@ import {
 import { Picker } from "@react-native-picker/picker";
 import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import ReAuthModalWrapper from "../../../components/ReAuthModalWrapper";
 
 // Helper function to generate a transaction reference
 const generateTransRef = () => "TRANS" + Date.now();
@@ -33,7 +35,7 @@ const BuyDataScreen = () => {
   const [disableValidator, setDisableValidator] = useState(false);
   const [loading, setLoading] = useState(false);
   const [userType, setUserType] = useState("1"); // sType: "1" = regular, "2" = agent, "3" = vendor
-
+  const [reauthVisible, setReauthVisible] = useState(false);
   // 1. Fetch networks and data plans from your endpoint
   useEffect(() => {
     const fetchNetworksAndPlans = async () => {
@@ -218,6 +220,19 @@ const BuyDataScreen = () => {
     }
   };
 
+
+  // This function is called when re-authentication succeeds.
+  const onReauthSuccess = () => {
+    setReauthVisible(false);
+    // Now proceed with the purchase action.
+    handleBuyData();
+  };
+
+  // When user taps Buy Data, instead of directly calling handleBuyData, show modal.
+  const onBuyDataPress = () => {
+    setReauthVisible(true);
+  };
+
   return (
     <ScrollView style={styles.container}>
       <Text style={styles.header}>Buy Data</Text>
@@ -309,13 +324,19 @@ const BuyDataScreen = () => {
       </View>
 
       {/* Buy Data Button */}
-      <TouchableOpacity style={styles.button} onPress={handleBuyData} disabled={loading}>
+      <TouchableOpacity style={styles.button} onPress={onBuyDataPress} disabled={loading}>
         {loading ? (
           <ActivityIndicator color="#fff" />
         ) : (
           <Text style={styles.buttonText}>Buy Data</Text>
         )}
       </TouchableOpacity>
+
+      <ReAuthModalWrapper
+  visible={reauthVisible}
+  onSuccess={onReauthSuccess} // this calls the purchase function
+  onCancel={() => setReauthVisible(false)}
+/>
     </ScrollView>
   );
 };
@@ -334,4 +355,3 @@ const styles = StyleSheet.create({
 });
 
 export default BuyDataScreen;
-0

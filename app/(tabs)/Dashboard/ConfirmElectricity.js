@@ -101,8 +101,8 @@ const ConfirmElectricity = () => {
       <Text style={styles.header}>Confirm Electricity Purchase</Text>
       
       <View style={styles.detailRow}>
-        <Text style={styles.label}>Bill Type:</Text>
-        <Text style={styles.value}>{electricityDetails}</Text>
+         <Text style={styles.label}>Provider:</Text>
+            <Text style={styles.value}>{data.providerName || data.provider || "N/A"}</Text>
       </View>
       
       <View style={styles.detailRow}>

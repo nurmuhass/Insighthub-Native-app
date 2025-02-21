@@ -38,6 +38,7 @@ export const signOut = async () => {
     await AsyncStorage.removeItem("loggedIn");
     await AsyncStorage.removeItem("cookie");
     await AsyncStorage.removeItem("loginId");
+    await AsyncStorage.removeItem("rawApiResponse"); // Also remove user details
     AuthStore.update((store) => {
       store.token = null;
       store.user = null;
