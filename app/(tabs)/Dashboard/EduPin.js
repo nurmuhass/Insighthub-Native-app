@@ -14,6 +14,7 @@ import {
 import { Picker } from '@react-native-picker/picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
+import ReAuthModalWrapper from '../../../components/ReAuthModalWrapper';
 
 // Helper function to generate a transaction reference
 const generateTransRef = () => "EXAMPIN" + Date.now();
@@ -27,6 +28,7 @@ const BuyExamPin = () => {
   const [quantity, setQuantity] = useState("");
   const [amountToPay, setAmountToPay] = useState("");
   const [loading, setLoading] = useState(false);
+      const [reauthVisible, setReauthVisible] = useState(false);
 
   // Fetch exam providers on mount
   useEffect(() => {
@@ -139,6 +141,25 @@ const BuyExamPin = () => {
     }
   };
 
+
+  
+
+  // This function is called when re-authentication succeeds.
+  const onReauthSuccess = () => {
+    setReauthVisible(false);
+    // Now proceed with the purchase action.
+    handlePurchase();
+    
+  };
+
+  // When user taps Buy Data, instead of directly calling handleBuyData, show modal.
+ 
+  const onBuyPress = () => {
+   
+    setReauthVisible(true);
+
+  };
+
   return (
     <ScrollView style={styles.container}>
       <Text style={styles.header}>Purchase Exam Pin</Text>
@@ -181,13 +202,19 @@ const BuyExamPin = () => {
         editable={false}
       />
       
-      <TouchableOpacity style={styles.button} onPress={handlePurchase} disabled={loading}>
+      <TouchableOpacity style={styles.button} onPress={onBuyPress} disabled={loading}>
         {loading ? (
           <ActivityIndicator color="#fff" />
         ) : (
           <Text style={styles.buttonText}>Purchase Pin</Text>
         )}
       </TouchableOpacity>
+      <ReAuthModalWrapper
+        visible={reauthVisible}
+        onSuccess={onReauthSuccess} // this calls the purchase function
+        onCancel={() => setReauthVisible(false)}
+        combinedData={null} // pass the combinedData to the modal
+      />
     </ScrollView>
   );
 };

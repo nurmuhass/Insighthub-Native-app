@@ -13,11 +13,13 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 // Depending on your expo-router version, use the appropriate hook:
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import ReAuthModalWrapper from '../../../components/ReAuthModalWrapper';
 
 const ConfirmPayCable = () => {
   const router = useRouter();
   const params = useLocalSearchParams();
-  
+    const [reauthVisible, setReauthVisible] = useState(false);
+
   // Expected parameter: verificationData (a JSON string)
   const { verificationData } = params;
   let data = {};
@@ -83,6 +85,23 @@ const ConfirmPayCable = () => {
     }
   };
 
+
+  // This function is called when re-authentication succeeds.
+  const onReauthSuccess = () => {
+    setReauthVisible(false);
+    // Now proceed with the purchase action.
+    handlePurchase();
+    
+  };
+
+  // When user taps Buy Data, instead of directly calling handleBuyData, show modal.
+ 
+  const onBuyCablePress = () => {
+   
+    setReauthVisible(true);
+
+  };
+
   return (
     <ScrollView style={styles.container}>
       <Text style={styles.header}>Confirm Cable Subscription</Text>
@@ -129,7 +148,7 @@ const ConfirmPayCable = () => {
         Please confirm that the above details are correct before you click on "Purchase Plan".
       </Text>
       
-      <TouchableOpacity style={styles.button} onPress={handlePurchase} disabled={loading}>
+      <TouchableOpacity style={styles.button} onPress={onBuyCablePress} disabled={loading}>
         {loading ? (
           <ActivityIndicator color="#fff" />
         ) : (
@@ -140,6 +159,12 @@ const ConfirmPayCable = () => {
       <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
         <Text style={styles.backButtonText}>Go Back</Text>
       </TouchableOpacity>
+      <ReAuthModalWrapper
+        visible={reauthVisible}
+        onSuccess={onReauthSuccess} // this calls the purchase function
+        onCancel={() => setReauthVisible(false)}
+        combinedData={null} // pass the combinedData to the modal
+      />
     </ScrollView>
   );
 };

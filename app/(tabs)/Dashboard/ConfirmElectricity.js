@@ -12,10 +12,12 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import ReAuthModalWrapper from '../../../components/ReAuthModalWrapper';
 
 const ConfirmElectricity = () => {
   const router = useRouter();
   const params = useLocalSearchParams();
+  const [reauthVisible, setReauthVisible] = useState(false);
 
   // Log route parameters for debugging
   console.log("Route parameters:", params);
@@ -96,6 +98,22 @@ const ConfirmElectricity = () => {
     }
   };
 
+
+  // This function is called when re-authentication succeeds.
+  const onReauthSuccess = () => {
+    setReauthVisible(false);
+    // Now proceed with the purchase action.
+    handlePurchase();
+  };
+
+  // When user taps Buy Data, instead of directly calling handleBuyData, show modal.
+ 
+  const onBuyPowerPress = () => {
+   
+    setReauthVisible(true);
+
+  };
+
   return (
     <ScrollView style={styles.container}>
       <Text style={styles.header}>Confirm Electricity Purchase</Text>
@@ -139,13 +157,19 @@ const ConfirmElectricity = () => {
         Please confirm that the above details are correct before clicking "Purchase Unit".
       </Text>
       
-      <TouchableOpacity style={styles.button} onPress={handlePurchase} disabled={loading}>
+      <TouchableOpacity style={styles.button} onPress={onBuyPowerPress} disabled={loading}>
         {loading ? (
           <ActivityIndicator color="#fff" />
         ) : (
           <Text style={styles.buttonText}>Purchase Unit</Text>
         )}
       </TouchableOpacity>
+            <ReAuthModalWrapper
+        visible={reauthVisible}
+        onSuccess={onReauthSuccess} // this calls the purchase function
+        onCancel={() => setReauthVisible(false)}
+        combinedData={null} // pass the combinedData to the modal
+      />
     </ScrollView>
   );
 };

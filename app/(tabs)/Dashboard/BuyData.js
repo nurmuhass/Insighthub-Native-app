@@ -27,9 +27,11 @@ const BuyDataScreen = () => {
   const [dataPlans, setDataPlans] = useState([]);
   const [dataTypes, setDataTypes] = useState([]); // Data type options based on network attributes
   const [selectedNetwork, setSelectedNetwork] = useState("");
+  const [selectedNetworkName, setSelectedNetworkName] = useState("");
   const [selectedDataType, setSelectedDataType] = useState("");
   const [filteredDataPlans, setFilteredDataPlans] = useState([]);
   const [selectedDataPlan, setSelectedDataPlan] = useState("");
+  const [selectedDataPlanName, setSelectedDataPlanName] = useState("");
   const [phone, setPhone] = useState("");
   const [amountToPay, setAmountToPay] = useState("");
   const [disableValidator, setDisableValidator] = useState(false);
@@ -59,7 +61,7 @@ const BuyDataScreen = () => {
         
               if (storedSType) {
                 setUserType(storedSType);
-                console.log("User sType from storage:", storedSType);
+               
               } else {
                 console.log("sType not found in rawApiResponse; defaulting to 1");
               }
@@ -81,6 +83,7 @@ const BuyDataScreen = () => {
         const json = await response.json();
 
         if (json.status === "success") {
+      
           // Filter networks to include only those with networkStatus "On"
           const activeNetworks = json.networks.filter(net => net.networkStatus === "On");
           setNetworks(activeNetworks);
@@ -108,6 +111,7 @@ const BuyDataScreen = () => {
     }
     // Find the selected network object
     const netObj = networks.find(net => net.nId == selectedNetwork);
+    setSelectedNetworkName(netObj ? netObj.network : "");
     if (!netObj) return;
     
     // Build available data types from network attributes.
@@ -151,9 +155,11 @@ const BuyDataScreen = () => {
   // 4. Handle data plan selection to set the price
   const handleDataPlanChange = (planId) => {
     setSelectedDataPlan(planId);
+   
     const plan = filteredDataPlans.find(p => p.pId == planId);
     if (plan) {
       let price = plan.userprice; // default for regular users
+      setSelectedDataPlanName( plan.type + " " +  plan.name + " " + plan.day + " Days");
       if (userType === "3") {
         price = plan.vendorprice;
       } else if (userType === "2") {
@@ -167,18 +173,7 @@ const BuyDataScreen = () => {
 
   // 5. Handle the purchase submission
   const handleBuyData = async () => {
-    if (!selectedNetwork) {
-      Alert.alert("Error", "Please select a network");
-      return;
-    }
-    if (!selectedDataPlan) {
-      Alert.alert("Error", "Please select a data plan");
-      return;
-    }
-    if (!phone) {
-      Alert.alert("Error", "Please enter a phone number");
-      return;
-    }
+   
     setLoading(true);
     try {
       const token = await AsyncStorage.getItem("token");
@@ -195,6 +190,8 @@ const BuyDataScreen = () => {
         ref: generateTransRef(),
         ported_number: disableValidator ? "true" : "false"
       };
+     
+
       const response = await fetch("https://insighthub.com.ng/api/data/index.php", {
         method: "POST",
         headers: {
@@ -229,8 +226,23 @@ const BuyDataScreen = () => {
   };
 
   // When user taps Buy Data, instead of directly calling handleBuyData, show modal.
+  const combinedData = {network: selectedNetworkName, phone: phone,desc:selectedDataPlanName,amountToPay: amountToPay };
   const onBuyDataPress = () => {
+    if (!selectedNetwork) {
+      Alert.alert("Error", "Please select a network");
+      return;
+    }
+    if (!selectedDataPlan) {
+      Alert.alert("Error", "Please select a data plan");
+      return;
+    }
+    if (!phone) {
+      Alert.alert("Error", "Please enter a phone number");
+      return;
+    }
+
     setReauthVisible(true);
+
   };
 
   return (
@@ -290,6 +302,7 @@ const BuyDataScreen = () => {
                 key={plan.pId}
                 label={`${plan.name} ${plan.type} (N${userType === "3" ? plan.vendorprice : userType === "2" ? plan.agentprice : plan.userprice}) (${plan.day} Days)`}
                 value={plan.pId}
+                
               />
             ))
           )}
@@ -336,6 +349,7 @@ const BuyDataScreen = () => {
   visible={reauthVisible}
   onSuccess={onReauthSuccess} // this calls the purchase function
   onCancel={() => setReauthVisible(false)}
+  combinedData={combinedData} // pass the combinedData to the modal
 />
     </ScrollView>
   );

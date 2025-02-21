@@ -39,7 +39,7 @@ const LockScreen = () => {
         
               if (storedSPin) {
                 setStoredPin(storedSPin);
-                console.log("User sP from storage:", storedSPin);
+                
               } else {
                 console.log("sP not found in rawApiResponse; defaulting to null");
               }
@@ -205,7 +205,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: "bold",
-    marginBottom: 15,
+    marginBottom: 35,
     color:'#7734eb',
   },
   dotsContainer: {

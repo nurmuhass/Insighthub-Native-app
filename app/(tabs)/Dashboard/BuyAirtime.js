@@ -15,6 +15,7 @@ import {
 import { Picker } from "@react-native-picker/picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
+import ReAuthModalWrapper from "../../../components/ReAuthModalWrapper";
 
 // Helper function to generate a transaction reference
 const generateTransRef = () => "TRANS" + Date.now();
@@ -26,6 +27,7 @@ const BuyAirtimeScreen = () => {
   const [networks, setNetworks] = useState([]);
   const [airtimeDiscountData, setAirtimeDiscountData] = useState([]);
   const [selectedNetwork, setSelectedNetwork] = useState("");
+  const [selectedNetworkName, setSelectedNetworkName] = useState("");
   const [availableAirtimeTypes, setAvailableAirtimeTypes] = useState([]);
   const [selectedAirtimeType, setSelectedAirtimeType] = useState("");
   const [phone, setPhone] = useState("");
@@ -35,7 +37,7 @@ const BuyAirtimeScreen = () => {
   const [disableValidator, setDisableValidator] = useState(false);
   const [loading, setLoading] = useState(false);
   const [userType, setUserType] = useState("1"); // sType ("1"=regular, "2"=agent, "3"=vendor)
-
+ const [reauthVisible, setReauthVisible] = useState(false);
   // --- Fetch Networks and Airtime Discount Data on mount ---
   useEffect(() => {
     const fetchData = async () => {
@@ -105,6 +107,8 @@ const BuyAirtimeScreen = () => {
     }
     // Find the selected network object
     const netObj = networks.find(net => net.nId == selectedNetwork);
+    setSelectedNetworkName(netObj ? netObj.network : "");
+
     if (!netObj) return;
 
     let types = [];
@@ -164,22 +168,7 @@ const BuyAirtimeScreen = () => {
 
   // --- Handle Airtime Purchase Submission ---
   const handleBuyAirtime = async () => {
-    if (!selectedNetwork) {
-      Alert.alert("Error", "Please select a network");
-      return;
-    }
-    if (!selectedAirtimeType) {
-      Alert.alert("Error", "Please select an airtime type");
-      return;
-    }
-    if (!phone) {
-      Alert.alert("Error", "Please enter a phone number");
-      return;
-    }
-    if (!airtimeAmount) {
-      Alert.alert("Error", "Please enter the airtime amount");
-      return;
-    }
+   
     // Generate a transaction reference
     const transRef = generateTransRef();
 
@@ -225,6 +214,40 @@ const BuyAirtimeScreen = () => {
       setLoading(false);
     }
   };
+
+
+  // This function is called when re-authentication succeeds.
+  const onReauthSuccess = () => {
+    setReauthVisible(false);
+    // Now proceed with the purchase action.
+    handleBuyAirtime();
+  };
+
+  // When user taps Buy Data, instead of directly calling handleBuyData, show modal.
+  const combinedData = {network: selectedNetworkName, phone: phone,desc:selectedAirtimeType + ' ' + airtimeAmount,amountToPay: amountToPay };
+  const onBuyAirtimePress = () => {
+
+    if (!selectedNetwork) {
+      Alert.alert("Error", "Please select a network");
+      return;
+    }
+    if (!selectedAirtimeType) {
+      Alert.alert("Error", "Please select an airtime type");
+      return;
+    }
+    if (!phone) {
+      Alert.alert("Error", "Please enter a phone number");
+      return;
+    }
+    if (!airtimeAmount) {
+      Alert.alert("Error", "Please enter the airtime amount");
+      return;
+    }
+
+    setReauthVisible(true);
+
+  };
+
 
   return (
     <ScrollView style={styles.container}>
@@ -314,13 +337,21 @@ const BuyAirtimeScreen = () => {
       </View>
       
       {/* Buy Airtime Button */}
-      <TouchableOpacity style={styles.button} onPress={handleBuyAirtime} disabled={loading}>
+      <TouchableOpacity style={styles.button} onPress={onBuyAirtimePress} disabled={loading}>
         {loading ? (
           <ActivityIndicator color="#fff" />
         ) : (
           <Text style={styles.buttonText}>Buy Airtime</Text>
         )}
       </TouchableOpacity>
+
+      <ReAuthModalWrapper
+  visible={reauthVisible}
+  onSuccess={onReauthSuccess} // this calls the purchase function
+  onCancel={() => setReauthVisible(false)}
+  combinedData={combinedData} // pass the combinedData to the modal
+/>
+
     </ScrollView>
   );
 };

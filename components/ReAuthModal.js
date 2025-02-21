@@ -16,7 +16,7 @@ import { useRouter } from 'expo-router';
 import { getStatusBarHeight } from 'react-native-status-bar-height';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
-const ReAuthModal = ({ onUnlock, onCancel }) => {
+const ReAuthModal = ({ onUnlock, onCancel,combinedData }) => {
   const router = useRouter();
   
   const [enteredPin, setEnteredPin] = useState("");
@@ -38,7 +38,7 @@ const ReAuthModal = ({ onUnlock, onCancel }) => {
           const storedSPin = parsedResponse.sPin;  // adjust this key as needed (hashed ideally)
           if (storedSPin) {
             setStoredPin(storedSPin);
-            console.log("User PIN from storage:", storedSPin);
+ 
           } else {
             console.log("PIN not found in rawApiResponse; defaulting to empty");
           }
@@ -109,10 +109,40 @@ const ReAuthModal = ({ onUnlock, onCancel }) => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.avatarContainer}>
-    
+
+        { combinedData !=null  ?
+        
+        <View style={styles.avatarContainer}>
+        <Text style={{alignSelf:'center',marginBottom:15,fontWeight:'bold'}}>Confirm Transaction Details</Text>
+ <View style={{flexDirection:'row', justifyContent:'space-between',marginBottom:10}}>
+     <Text>To:  </Text> 
+     <Text style={{fontWeight:'bold'}}>{combinedData.phone}</Text> 
+ </View>  
+ <View style={{flexDirection:'row', justifyContent:'space-between',marginBottom:10}}>
+     <Text>Amount:  </Text> 
+     <Text style={{fontWeight:'bold'}}>{combinedData.amountToPay}</Text> 
+ </View> 
+
+ <View style={{flexDirection:'row', justifyContent:'space-between',marginBottom:10}}>
+     <Text>Network:  </Text> 
+     <Text style={{fontWeight:'bold'}}>{combinedData.network}</Text> 
+ </View> 
+
+ <View style={{flexDirection:'row', justifyContent:'space-between',marginBottom:10}}>
+     <Text>Description:  </Text> 
+     <Text style={{fontWeight:'bold'}}>{combinedData.desc}</Text> 
+ </View> 
+
+
       </View>
-      <Text style={styles.title}>Enter Passcode</Text>
+
+      :
+
+      null
+
+        }
+  
+      <Text style={{...styles.title,marginTop:combinedData != null ? 0 : '20%'}}>Enter Passcode to confirm purchase</Text>
       {renderDots()}
       {renderKeypad()}
       <TouchableOpacity style={styles.cancelButton} onPress={onCancel}>
@@ -139,7 +169,7 @@ const ReAuthModal = ({ onUnlock, onCancel }) => {
 
   function renderKeypad() {
     return (
-      <View style={styles.keypadContainer}>
+      <View style={{...styles.keypadContainer, height: combinedData != null ? '40%' : '50%',}}>
         {digits.map((digit, index) => (
           <TouchableOpacity 
             key={index} 
@@ -171,17 +201,17 @@ const styles = StyleSheet.create({
     justifyContent: "center"
   },
   avatarContainer: {
-    marginBottom: 80,
+    marginBottom: 40,
+    backgroundColor:'#f0f0f0',
+    padding: 20,
+    width: '86%',
+    height: '25%',
   },
-  avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-  },
+
   title: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginBottom: 15,
+    fontSize: 16,
+    fontWeight: "medium",
+    marginBottom: 25,
     color: '#7734eb',
   },
   dotsContainer: {
@@ -202,7 +232,6 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     justifyContent: "center",
     marginBottom: 20,
-    height:'60%'
   },
   key: {
     width: "30%",
@@ -217,15 +246,15 @@ const styles = StyleSheet.create({
     color: "#7734eb",
   },
   cancelButton: {
-    marginTop: 10,
+    marginTop: 35,
     padding: 15,
-    backgroundColor: "#ccc",
+    backgroundColor: "#7734eb",
     borderRadius: 8,
     width: "80%",
     alignItems: "center",
   },
   cancelButtonText: {
-    color: "#333",
+    color: "#fff",
     fontSize: 16,
     fontWeight: "bold"
   },

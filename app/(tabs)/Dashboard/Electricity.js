@@ -14,6 +14,7 @@ import {
 import { Picker } from '@react-native-picker/picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
+import ReAuthModalWrapper from '../../../components/ReAuthModalWrapper';
 
 const ElectricityScreen = () => {
   const router = useRouter();
@@ -28,6 +29,7 @@ const ElectricityScreen = () => {
   const [amount, setAmount] = useState(""); // user-entered amount
   const [amountToPay, setAmountToPay] = useState("");
   const [loading, setLoading] = useState(false);
+
   
   // Fetch electricity providers and charge from API endpoint on mount
   useEffect(() => {
@@ -246,6 +248,7 @@ const ElectricityScreen = () => {
           <Text style={styles.buttonText}>Continue</Text>
         )}
       </TouchableOpacity>
+
     </ScrollView>
   );
 };
