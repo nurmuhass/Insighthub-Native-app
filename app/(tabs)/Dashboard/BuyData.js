@@ -9,19 +9,24 @@ import {
   StyleSheet,
   Switch,
   ActivityIndicator,
-  ScrollView
+  ScrollView,
+  TouchableHighlight,
+  FlatList,
+  Modal
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import ReAuthModalWrapper from "../../../components/ReAuthModalWrapper";
+import { MaterialIcons } from "@expo/vector-icons";
+import * as Contacts from 'expo-contacts';
 
 // Helper function to generate a transaction reference
 const generateTransRef = () => "TRANS" + Date.now();
 
 const BuyDataScreen = () => {
   const router = useRouter();
-  
+  const ref = generateTransRef();
   // State variables
   const [networks, setNetworks] = useState([]);
   const [dataPlans, setDataPlans] = useState([]);
@@ -38,6 +43,8 @@ const BuyDataScreen = () => {
   const [loading, setLoading] = useState(false);
   const [userType, setUserType] = useState("1"); // sType: "1" = regular, "2" = agent, "3" = vendor
   const [reauthVisible, setReauthVisible] = useState(false);
+  const [contacts, setContacts] = useState([]);
+const [modalVisible, setModalVisible] = useState(false);
   // 1. Fetch networks and data plans from your endpoint
   useEffect(() => {
     const fetchNetworksAndPlans = async () => {
@@ -187,8 +194,8 @@ const BuyDataScreen = () => {
         network: selectedNetwork,
         phone: phone,
         data_plan: selectedDataPlan,
-        ref: generateTransRef(),
-        ported_number: disableValidator ? "true" : "false"
+        ref: ref,
+        ported_number:  "true",
       };
      
 
@@ -206,6 +213,10 @@ const BuyDataScreen = () => {
       if (resJson.status === "success") {
         Alert.alert("Success", "Data purchase successful");
         // Optionally reset form or navigate away.
+        router.replace({
+          pathname: "Dashboard/receipt",
+          params: { transaction: JSON.stringify(combinedData) }
+        });
       } else {
         Alert.alert("Error", resJson.msg || "Data purchase failed");
       }
@@ -226,7 +237,7 @@ const BuyDataScreen = () => {
   };
 
   // When user taps Buy Data, instead of directly calling handleBuyData, show modal.
-  const combinedData = {network: selectedNetworkName, phone: phone,desc:selectedDataPlanName,amountToPay: amountToPay };
+  const combinedData = {network: selectedNetworkName, phone: phone,desc:selectedDataPlanName,amountToPay: amountToPay,ref: ref, date: new Date().toLocaleString()};
   const onBuyDataPress = () => {
     if (!selectedNetwork) {
       Alert.alert("Error", "Please select a network");
@@ -240,11 +251,39 @@ const BuyDataScreen = () => {
       Alert.alert("Error", "Please enter a phone number");
       return;
     }
-
+ 
+    
+   
     setReauthVisible(true);
 
   };
 
+  const fetchContacts = async () => {
+    console.log("Fetching contacts...");
+  
+    const { status } = await Contacts.requestPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert("Permission Denied", "Permission to access contacts was denied");
+      return;
+    }
+  
+    const { data } = await Contacts.getContactsAsync({
+      fields: [Contacts.Fields.PhoneNumbers],
+    });
+  
+    if (data.length > 0) {
+      const filteredContacts = data.filter(contact => contact.phoneNumbers && contact.phoneNumbers.length > 0);
+      if (filteredContacts.length === 0) {
+        Alert.alert("No Contacts", "No contacts with phone numbers found");
+        return;
+      }
+      setContacts(filteredContacts);
+      setModalVisible(true);
+    } else {
+      Alert.alert("No Contacts", "No contacts found on this device");
+    }
+  };
+  
   return (
     <ScrollView style={styles.container}>
       <Text style={styles.header}>Buy Data</Text>
@@ -311,13 +350,20 @@ const BuyDataScreen = () => {
       
       {/* Phone Number */}
       <Text style={styles.subHeader}>Phone Number</Text>
-      <TextInput
+   
+       <View style={{position:'relative'}}>
+       <TextInput
         style={styles.input}
         placeholder="Enter phone number"
         keyboardType="phone-pad"
         value={phone}
         onChangeText={setPhone}
       />
+      <TouchableOpacity onPress={fetchContacts}  style={{position:'absolute',top:10,right:5}}>
+      <MaterialIcons name="contacts" size={24} color="black" />
+      </TouchableOpacity>
+     
+      </View>
       
       {/* Amount To Pay */}
       <Text style={styles.subHeader}>Amount To Pay</Text>
@@ -328,13 +374,13 @@ const BuyDataScreen = () => {
       />
 
       {/* Disable Validator */}
-      <View style={styles.switchContainer}>
+      {/* <View style={styles.switchContainer}>
         <Text style={styles.label}>Disable Number Validator</Text>
         <Switch
           value={disableValidator}
           onValueChange={setDisableValidator}
         />
-      </View>
+      </View> */}
 
       {/* Buy Data Button */}
       <TouchableOpacity style={styles.button} onPress={onBuyDataPress} disabled={loading}>
@@ -351,6 +397,29 @@ const BuyDataScreen = () => {
   onCancel={() => setReauthVisible(false)}
   combinedData={combinedData} // pass the combinedData to the modal
 />
+
+<Modal
+  animationType="slide"
+  transparent={false}
+  visible={modalVisible}
+  onRequestClose={() => setModalVisible(false)}
+>
+  <FlatList
+    data={contacts}
+    keyExtractor={(item, index) => index.toString()}
+    renderItem={({ item }) => (
+      <TouchableHighlight
+        underlayColor="#ddd"
+        onPress={() => {
+          setPhone(item.phoneNumbers[0].number); // Set the phone number
+          setModalVisible(false);
+        }}
+      >
+        <Text style={{ padding: 20 }}>{item.name} - {item.phoneNumbers[0].number}</Text>
+      </TouchableHighlight>
+    )}
+  />
+</Modal>
     </ScrollView>
   );
 };

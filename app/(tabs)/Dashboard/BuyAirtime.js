@@ -10,19 +10,23 @@ import {
   StyleSheet,
   Switch,
   ActivityIndicator,
-  ScrollView
+  ScrollView,
+  Modal
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import ReAuthModalWrapper from "../../../components/ReAuthModalWrapper";
-
+import { TouchableHighlight } from "react-native";
+import { FlatList } from "react-native";
+import { MaterialIcons } from "@expo/vector-icons";
+import * as Contacts from 'expo-contacts';
 // Helper function to generate a transaction reference
 const generateTransRef = () => "TRANS" + Date.now();
 
 const BuyAirtimeScreen = () => {
   const router = useRouter();
-
+  const ref = generateTransRef();
   // State variables
   const [networks, setNetworks] = useState([]);
   const [airtimeDiscountData, setAirtimeDiscountData] = useState([]);
@@ -34,10 +38,13 @@ const BuyAirtimeScreen = () => {
   const [airtimeAmount, setAirtimeAmount] = useState(""); // user-entered amount
   const [amountToPay, setAmountToPay] = useState("");    // calculated value
   const [discountDisplay, setDiscountDisplay] = useState(""); // e.g. "20%"
-  const [disableValidator, setDisableValidator] = useState(false);
+  const [disableValidator, setDisableValidator] = useState(true);
   const [loading, setLoading] = useState(false);
   const [userType, setUserType] = useState("1"); // sType ("1"=regular, "2"=agent, "3"=vendor)
  const [reauthVisible, setReauthVisible] = useState(false);
+   const [contacts, setContacts] = useState([]);
+ const [modalVisible, setModalVisible] = useState(false);
+
   // --- Fetch Networks and Airtime Discount Data on mount ---
   useEffect(() => {
     const fetchData = async () => {
@@ -60,7 +67,7 @@ const BuyAirtimeScreen = () => {
       
             if (storedSType) {
               setUserType(storedSType);
-              console.log("User sType from storage:", storedSType);
+           
             } else {
               console.log("sType not found in rawApiResponse; defaulting to 1");
             }
@@ -170,7 +177,7 @@ const BuyAirtimeScreen = () => {
   const handleBuyAirtime = async () => {
    
     // Generate a transaction reference
-    const transRef = generateTransRef();
+  
 
     setLoading(true);
     try {
@@ -186,8 +193,8 @@ const BuyAirtimeScreen = () => {
         phone: phone,
         amount: airtimeAmount,
         airtime_type: selectedAirtimeType, // "VTU" or "Share And Sell"
-        ported_number: disableValidator ? "true" : "false",
-        ref: transRef
+        ported_number: "true",
+        ref: ref
       };
 
       const response = await fetch("https://insighthub.com.ng/api/airtime/index.php", {
@@ -203,7 +210,10 @@ const BuyAirtimeScreen = () => {
       console.log("Buy Airtime Response:", resJson);
       if (resJson.status === "success") {
         Alert.alert("Success", "Airtime purchase successful");
-        // Optionally navigate to another screen or clear the form.
+        router.replace({
+          pathname: "Dashboard/receipt",
+          params: { transaction: JSON.stringify(combinedData) }
+        });
       } else {
         Alert.alert("Error", resJson.msg || "Airtime purchase failed");
       }
@@ -224,7 +234,7 @@ const BuyAirtimeScreen = () => {
   };
 
   // When user taps Buy Data, instead of directly calling handleBuyData, show modal.
-  const combinedData = {network: selectedNetworkName, phone: phone,desc:selectedAirtimeType + ' ' + airtimeAmount,amountToPay: amountToPay };
+  const combinedData = {network: selectedNetworkName, phone: phone,desc:selectedAirtimeType + ' ' + airtimeAmount,amountToPay: amountToPay,ref: ref, date: new Date().toLocaleString() };
   const onBuyAirtimePress = () => {
 
     if (!selectedNetwork) {
@@ -248,7 +258,31 @@ const BuyAirtimeScreen = () => {
 
   };
 
-
+  const fetchContacts = async () => {
+    console.log("Fetching contacts...");
+  
+    const { status } = await Contacts.requestPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert("Permission Denied", "Permission to access contacts was denied");
+      return;
+    }
+  
+    const { data } = await Contacts.getContactsAsync({
+      fields: [Contacts.Fields.PhoneNumbers],
+    });
+  
+    if (data.length > 0) {
+      const filteredContacts = data.filter(contact => contact.phoneNumbers && contact.phoneNumbers.length > 0);
+      if (filteredContacts.length === 0) {
+        Alert.alert("No Contacts", "No contacts with phone numbers found");
+        return;
+      }
+      setContacts(filteredContacts);
+      setModalVisible(true);
+    } else {
+      Alert.alert("No Contacts", "No contacts found on this device");
+    }
+  };
   return (
     <ScrollView style={styles.container}>
       <Text style={styles.header}>Buy Airtime</Text>
@@ -293,6 +327,7 @@ const BuyAirtimeScreen = () => {
       
       {/* Phone Number Input */}
       <Text style={styles.subHeader}>Phone Number</Text>
+ <View style={{position:'relative'}}>
       <TextInput
         style={styles.input}
         placeholder="Enter phone number"
@@ -301,6 +336,12 @@ const BuyAirtimeScreen = () => {
         onChangeText={setPhone}
       />
       
+      <TouchableOpacity onPress={fetchContacts}  style={{position:'absolute',top:10,right:5}}>
+      <MaterialIcons name="contacts" size={24} color="black" />
+      </TouchableOpacity>
+     
+      </View>
+
       {/* Airtime Amount Input */}
       <Text style={styles.subHeader}>Amount</Text>
       <TextInput
@@ -328,13 +369,13 @@ const BuyAirtimeScreen = () => {
       />
 
       {/* Disable Number Validator Switch */}
-      <View style={styles.switchContainer}>
+      {/* <View style={styles.switchContainer}>
         <Text style={styles.label}>Disable Number Validator</Text>
         <Switch
           value={disableValidator}
           onValueChange={setDisableValidator}
         />
-      </View>
+      </View> */}
       
       {/* Buy Airtime Button */}
       <TouchableOpacity style={styles.button} onPress={onBuyAirtimePress} disabled={loading}>
@@ -351,6 +392,31 @@ const BuyAirtimeScreen = () => {
   onCancel={() => setReauthVisible(false)}
   combinedData={combinedData} // pass the combinedData to the modal
 />
+
+
+
+<Modal
+  animationType="slide"
+  transparent={false}
+  visible={modalVisible}
+  onRequestClose={() => setModalVisible(false)}
+>
+  <FlatList
+    data={contacts}
+    keyExtractor={(item, index) => index.toString()}
+    renderItem={({ item }) => (
+      <TouchableHighlight
+        underlayColor="#ddd"
+        onPress={() => {
+          setPhone(item.phoneNumbers[0].number); // Set the phone number
+          setModalVisible(false);
+        }}
+      >
+        <Text style={{ padding: 20 }}>{item.name} - {item.phoneNumbers[0].number}</Text>
+      </TouchableHighlight>
+    )}
+  />
+</Modal>
 
     </ScrollView>
   );

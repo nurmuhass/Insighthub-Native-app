@@ -54,7 +54,6 @@ const ConfirmElectricity = () => {
   const handlePurchase = async () => {
     const transRef = "ELEC" + Date.now();
     // Build the payload that the purchase API endpoint expects.
-    // You can include any additional fields as required.
     const payload = {
       provider: provider,           // Provider id (as passed earlier)
       metertype: metertype,         // Meter type
@@ -86,7 +85,15 @@ const ConfirmElectricity = () => {
       console.log("Purchase Electricity Response:", resJson);
       if (resJson.status === "success") {
         Alert.alert("Success", "Purchase successful. " + (resJson.msg ? "Unit Token: " + resJson.msg : ""));
-        // Optionally navigate to a dashboard or success screen.
+       
+        const combinedData = {...JSON.parse(verificationData),Token:resJson.msg, date: new Date().toLocaleString()};
+   
+        router.replace({
+          pathname: "Dashboard/receipts/ElectricityReceipt",
+          params: { transaction: JSON.stringify(combinedData) }
+        });
+
+        
       } else {
         Alert.alert("Error", resJson.msg || "Purchase failed.");
       }
@@ -109,7 +116,7 @@ const ConfirmElectricity = () => {
   // When user taps Buy Data, instead of directly calling handleBuyData, show modal.
  
   const onBuyPowerPress = () => {
-   
+
     setReauthVisible(true);
 
   };

@@ -71,7 +71,7 @@ const ConfirmPayCable = () => {
       const resJson = await response.json();
       console.log("Cable Purchase Response:", resJson);
       if (resJson.status === "success") {
-        Alert.alert("Success", "Purchase successful. " + (resJson.msg ? "Unit Token: " + resJson.msg : ""));
+        Alert.alert("Success", "Purchase successful. " + (resJson.msg ? "Cable Token: " + resJson.msg : ""));
         // Optionally navigate to a dashboard or success page:
         // router.push('/Dashboard');
       } else {
@@ -98,7 +98,14 @@ const ConfirmPayCable = () => {
  
   const onBuyCablePress = () => {
    
-    setReauthVisible(true);
+    const combinedData = {...JSON.parse(verificationData),Token:'fyuut67676776', date: new Date().toLocaleString()};
+   
+    router.replace({
+      pathname: "Dashboard/receipts/CableReceipt",
+      params: { transaction: JSON.stringify(combinedData) }
+    });
+
+    // setReauthVisible(true);
 
   };
 
