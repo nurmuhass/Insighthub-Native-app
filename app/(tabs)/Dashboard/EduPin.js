@@ -26,10 +26,11 @@ const BuyExamPin = () => {
   const [examProviders, setExamProviders] = useState([]);
   const [selectedProvider, setSelectedProvider] = useState("");
   const [quantity, setQuantity] = useState("");
+  const [providerName, setProviderName] = useState("");
   const [amountToPay, setAmountToPay] = useState("");
   const [loading, setLoading] = useState(false);
       const [reauthVisible, setReauthVisible] = useState(false);
-
+      const transRef = generateTransRef();
   // Fetch exam providers on mount
   useEffect(() => {
     const fetchExamProviders = async () => {
@@ -71,6 +72,7 @@ const BuyExamPin = () => {
     const provider = examProviders.find(p => p.eId == selectedProvider);
     if (provider) {
       const price = parseFloat(provider.price) || 0;
+      setProviderName(provider.provider);
 
       
       const qty = parseFloat(quantity) || 0;
@@ -99,7 +101,7 @@ const BuyExamPin = () => {
       return;
     }
     
-    const transRef = generateTransRef();
+ 
     const payload = {
       provider: selectedProvider,
       quantity: quantity,
@@ -125,13 +127,18 @@ const BuyExamPin = () => {
         body: JSON.stringify(payload)
       });
       const resJson = await response.json();
-      console.log("Exam Pin Verification Response:", resJson);
+      console.log("Exam Pin  Response:", resJson);
       if (resJson.status === "success") {
-        Alert.alert("Success", "Exam Pin purchase verification successful");
-        // Navigate to a confirmation page, passing the response data
+        Alert.alert("Success", "Exam Pin purchase successful");
+        const combinedData = { providerName:providerName,Token:resJson.msg, quantity:quantity, amount: amountToPay,ref: transRef,date: new Date().toDateString() };
+  
+        router.replace({
+          pathname: "Dashboard/receipts/ExamReceipts",
+          params: { transaction: JSON.stringify(combinedData) }
+        });     
   
       } else {
-        Alert.alert("Error", resJson.msg || "Exam Pin purchase verification failed");
+        Alert.alert("Error", resJson.msg || "Exam Pin purchase failed");
       }
     } catch (error) {
       console.error("Error purchasing exam pin:", error);
@@ -155,7 +162,7 @@ const BuyExamPin = () => {
   // When user taps Buy Data, instead of directly calling handleBuyData, show modal.
  
   const onBuyPress = () => {
-   
+
     setReauthVisible(true);
 
   };

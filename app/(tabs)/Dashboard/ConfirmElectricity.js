@@ -86,7 +86,7 @@ const ConfirmElectricity = () => {
       if (resJson.status === "success") {
         Alert.alert("Success", "Purchase successful. " + (resJson.msg ? "Unit Token: " + resJson.msg : ""));
        
-        const combinedData = {...JSON.parse(verificationData),Token:resJson.msg, date: new Date().toLocaleString()};
+        const combinedData = {...JSON.parse(verificationData),Token:resJson.msg, date: new Date().toDateString()};
    
         router.replace({
           pathname: "Dashboard/receipts/ElectricityReceipt",

@@ -401,21 +401,23 @@ const BuyAirtimeScreen = () => {
   visible={modalVisible}
   onRequestClose={() => setModalVisible(false)}
 >
-  <FlatList
-    data={contacts}
-    keyExtractor={(item, index) => index.toString()}
-    renderItem={({ item }) => (
-      <TouchableHighlight
-        underlayColor="#ddd"
-        onPress={() => {
-          setPhone(item.phoneNumbers[0].number); // Set the phone number
-          setModalVisible(false);
-        }}
-      >
-        <Text style={{ padding: 20 }}>{item.name} - {item.phoneNumbers[0].number}</Text>
-      </TouchableHighlight>
-    )}
-  />
+<FlatList 
+  data={contacts}
+  keyExtractor={(item, index) => index.toString()}
+  renderItem={({ item }) => (
+    <TouchableHighlight
+      underlayColor="#ddd"
+      onPress={() => {
+        const formattedPhone = item.phoneNumbers[0].number.replace(/\s/g, ''); // Remove spaces
+        setPhone(formattedPhone);
+        setModalVisible(false);
+      }}
+    >
+      <Text style={{ padding: 20 }}>{item.name} - {item.phoneNumbers[0].number}</Text>
+    </TouchableHighlight>
+  )}
+/>
+
 </Modal>
 
     </ScrollView>

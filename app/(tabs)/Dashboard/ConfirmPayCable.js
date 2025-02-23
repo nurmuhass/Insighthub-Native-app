@@ -98,7 +98,7 @@ const ConfirmPayCable = () => {
  
   const onBuyCablePress = () => {
    
-    const combinedData = {...JSON.parse(verificationData),Token:'fyuut67676776', date: new Date().toLocaleString()};
+    const combinedData = {...JSON.parse(verificationData),Token:'fyuut67676776', date: new Date().toDateString()};
    
     router.replace({
       pathname: "Dashboard/receipts/CableReceipt",
