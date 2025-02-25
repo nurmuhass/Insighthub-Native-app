@@ -61,10 +61,7 @@ export default function TransactionDetailScreen() {
                 <span class="label">Description:</span>
                 <span class="value">${transactionData.desc}</span>
               </div>
-              <div class="detail-row">
-                <span class="label">Amount:</span>
-                <span class="value">${transactionData.amountToPay}</span>
-              </div>
+            
               <div class="detail-row">
                 <span class="label">Date:</span>
                 <span class="value">${transactionData.date}</span>

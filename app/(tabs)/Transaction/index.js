@@ -1,97 +1,170 @@
-import { useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Modal, TextInput, Image, StatusBar } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { 
+  View, 
+  Text, 
+  FlatList, 
+  TouchableOpacity, 
+  Modal, 
+  TextInput, 
+  Image, 
+  StatusBar, 
+  StyleSheet, 
+  Alert 
+} from 'react-native';
 import { getStatusBarHeight } from 'react-native-status-bar-height';
-import { Link, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const transactionsData = {
-  "Buy Data": [
-    { id: "1", provider: "MTN SME", amount: "₦129.0", date: "2025-02-01 - 08:23 AM", status: "SUCCESSFUL", details: { phone: "08038148507", product: "MTN SME", description: "500.0MB FOR null", previousBalance: "N1437.82", newBalance: "N1308.82" } },
-    { id: "2", provider: "MTN SME", amount: "₦257.0", date: "2025-01-31 - 22:35 PM", status: "SUCCESSFUL", details: { phone: "08038148507", product: "MTN SME", description: "1.0GB FOR null", previousBalance: "N1694.82", newBalance: "N1437.82" } },
-  ],
-  Airtime: [
-    { id: "8", provider: "GLO", amount: "₦500.0", date: "2025-01-28 - 15:12 PM", status: "SUCCESSFUL", details: { phone: "08038148507", product: "GLO", description: "Airtime VTU", previousBalance: "N2194.82", newBalance: "N1694.82" } },
-    { id: "9", provider: "AIRTEL", amount: "₦1000.0", date: "2025-01-27 - 10:45 AM", status: "FAILED", details: { phone: "08038148507", product: "AIRTEL", description: "Airtime VTU", previousBalance: "N3194.82", newBalance: "N2194.82" } },
-  ],
-  Electricity: [
-    { id: "10", provider: "IKEDC", amount: "₦3000.0", date: "2025-01-26 - 14:20 PM", status: "SUCCESSFUL", details: { phone: "08038148507", product: "IKEDC", description: "Electricity Bill", previousBalance: "N6194.82", newBalance: "N3194.82" } },
-    { id: "11", provider: "EKEDC", amount: "₦2000.0", date: "2025-01-25 - 09:30 AM", status: "PENDING", details: { phone: "08038148507", product: "EKEDC", description: "Electricity Bill", previousBalance: "N8194.82", newBalance: "N6194.82" } },
-  ],
-  Cable: [
-  ],
-  'Education Pin': [
-  ],
-  'Bulk SMS': [
-  ],
-  'Recharge Card': [
-  ],
-  'Airime Swap': [
-  ],
-};
-
-export default function TransactionsScreen() {
-  const [selectedService, setSelectedService] = useState("Buy Data");
-  const [modalVisible, setModalVisible] = useState(false);
-  const [searchText, setSearchText] = useState("");
+const TransactionsScreen = () => {
   const router = useRouter();
+  
+  // State variables
+  const [transactions, setTransactions] = useState([]);
+  const [sId, setSId] = useState(null);
+  const [searchText, setSearchText] = useState("");
+  const [selectedService, setSelectedService] = useState("");
+  const [modalVisible, setModalVisible] = useState(false);
 
-  const services = Object.keys(transactionsData);
+  // Fetch real-time transactions on mount
+  useEffect(() => {
+    const loadAndFetchTransactions = async () => {
+      try {
+        const token = await AsyncStorage.getItem("token");
+        if (!token) {
+          Alert.alert("Error", "No access token found");
+          return;
+        }
+        
+        // Retrieve user ID from rawApiResponse
+        const rawApiResponse = await AsyncStorage.getItem("rawApiResponse");
+        let userId = null;
+        if (rawApiResponse) {
+          const parsedResponse = JSON.parse(rawApiResponse);
+          userId = parsedResponse.sId;
+          setSId(userId);
+        } else {
+          console.log("rawApiResponse not found in storage; sId remains null");
+        }
+        
+        if (userId) {
+          const url = `https://insighthub.com.ng/api/user/GetTransactions.php?userId=${userId}&limit=100`;
+          const response = await fetch(url, {
+            method: "GET",
+            headers: {
+              "Accept": "application/json",
+              "Authorization": `Token ${token}`
+            }
+          });
+          console.log("Response status:", response.status);
+          const responseText = await response.text();
+          console.log("Response text:", responseText);
+          
+          let json;
+          try {
+            json = JSON.parse(responseText);
+          } catch (e) {
+            console.error("Error parsing JSON:", e);
+            return;
+          }
+          
+          console.log("Raw API Response:", json);
+          if (json.status === "success") {
+            setTransactions(json.transactions || []);
+            // Extract unique service names from transactions
+            const services = [...new Set((json.transactions || []).map(tx => tx.servicename))];
+            // Set default selected service as the first one (if available)
+            if (services.length > 0) {
+              setSelectedService(services[0]);
+            }
+          } else {
+            Alert.alert("Error", json.msg || "Failed to load transactions");
+          }
+        }
+      } catch (error) {
+        console.error("Error loading sId and fetching transactions:", error);
+        Alert.alert("Error", "An error occurred while fetching transactions");
+      }
+    };
 
-  const filteredTransactions = transactionsData[selectedService].filter((item) =>
-    item.provider.toLowerCase().includes(searchText.toLowerCase())
-  );
+    loadAndFetchTransactions();
+  }, []);
+
+  // Filter transactions by selected service and search text
+  const filteredTransactions = transactions.filter(item => {
+    const serviceMatch = selectedService ? (item.servicename === selectedService) : true;
+    const searchMatch = item.servicedesc.toLowerCase().includes(searchText.toLowerCase());
+    return serviceMatch && searchMatch;
+  });
+
+  // Get unique services from transactions for the modal
+  const serviceOptions = [...new Set(transactions.map(item => item.servicename))];
 
   return (
     <View style={{ paddingTop: getStatusBarHeight(), backgroundColor: '#fff', flex: 1 }}>
-      <StatusBar
-        translucent
-        barStyle="dark-content"
-        backgroundColor="rgba(255, 255, 255, 0)"
-      />
-      <View style={{ flex: 1, padding: 10, backgroundColor: "#fff" }}>
-        {/* Header */}
-        <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 10 }}>
+      <StatusBar translucent barStyle="dark-content" backgroundColor="rgba(255,255,255,0)" />
+      <View style={styles.container}>
+        {/* Header with Service Selection */}
+        <View style={styles.headerContainer}>
           <TouchableOpacity onPress={() => setModalVisible(true)}>
-            <Text style={{ fontSize: 20, color: "#2899ff" }}>▼</Text>
+            <Text style={styles.dropdownIcon}>▼</Text>
           </TouchableOpacity>
-          <Text style={{ fontSize: 20, fontWeight: "bold", marginLeft: 10, color: "#2899ff" }}>
-            {selectedService} 
-          </Text>
+          <Text style={styles.headerTitle}>{selectedService}</Text>
         </View>
 
         {/* Search Bar */}
-        <View style={{ flexDirection: "row", alignItems: "center", backgroundColor: "#eee", padding: 8, borderRadius: 10 }}>
+        <View style={styles.searchContainer}>
           <TextInput
             placeholder="Search"
             value={searchText}
             onChangeText={setSearchText}
-            style={{ flex: 1, fontSize: 16 }}
+            style={styles.searchInput}
           />
-          <Text style={{ fontSize: 20, color: "#888" }}>🔍</Text>
+          <Text style={styles.searchIcon}>🔍</Text>
         </View>
-     
-        {/* Transactions List */}
-        <FlatList
+
+   {/* Transactions List */}
+   <FlatList
           data={filteredTransactions}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => item.transref}
           ListEmptyComponent={() => (
             <View style={{ alignItems: "center", marginTop: 50 }}>
               <Image source={{ uri: "https://via.placeholder.com/100" }} style={{ width: 100, height: 100 }} />
-              <Text style={{ marginTop: 10, fontSize: 16, color: "#888" }}>It seems there are no recent activities.</Text>
-            </View>
+              <Text style={{ marginTop: 10, fontSize: 16, color: "#888" }}>No transactions found.</Text>
+            </View> 
           )}
           renderItem={({ item }) => (   
             <TouchableOpacity onPress={() => router.push({ pathname: "/Transaction/transaction-detail", params: { transaction: JSON.stringify(item) } })}>
               <View style={{ flexDirection: "row", padding: 10, backgroundColor: "#f9f9f9", borderRadius: 5, marginTop: 8 }}>
-              {item.provider === 'MTN SME' ? <Image source={require("../../../images/mtn.png")} style={{width:40,height:40,borderRadius:8}}/> 
-           : item.provider === 'GLO' ?  <Image source={require("../../../images/glo.jpeg")} style={{width:40,height:40,borderRadius:8}}/> 
-            : item.provider === 'AIRTEL' ? <Image source={require("../../../images/airtel.jpeg")} style={{width:40,height:40,borderRadius:8}}/> :''}
-        
+              { item.servicedesc && item.servicedesc.toUpperCase().includes('AIRTEL') && (
+  <Image source={require("../../../images/airtel.jpeg")} style={styles.providerLogo} />
+)}
+{ item.servicedesc && item.servicedesc.toUpperCase().includes('MTN') && (
+  <Image source={require("../../../images/mtn.png")} style={styles.providerLogo} />
+)}
+{ item.servicedesc && item.servicedesc.toUpperCase().includes('GLO') && (
+  <Image source={require("../../../images/glo.jpeg")} style={styles.providerLogo} />
+)}
+{ item.servicedesc && item.servicedesc.toUpperCase().includes('9MOBILE') && (
+  <Image source={require("../../../images/9mobile.png")} style={styles.providerLogo} />
+)}
+
                 <View style={{ marginLeft: 10 }}>
-                  <Text style={{ fontWeight: "bold" }}>{item.provider}</Text>
+    <Text style={{ fontWeight: "bold",alignSelf:'flex-start' }}> { item.servicedesc && item.servicedesc.toUpperCase().includes('AIRTEL') && (
+'Airtel'
+)}
+{ item.servicedesc && item.servicedesc.toUpperCase().includes('MTN') && (
+'MTN'
+)}
+{ item.servicedesc && item.servicedesc.toUpperCase().includes('GLO') && (
+'Glo'
+)}
+{ item.servicedesc && item.servicedesc.toUpperCase().includes('9MOBILE') && (
+'9Mobile'
+)}</Text>
                   <Text>{item.date}</Text>
                 </View>
-                <Text style={{ marginLeft: "auto", fontWeight: "bold", color: item.status === "SUCCESSFUL" ? "green" : item.status === "FAILED" ? "red" : "orange" }}>
-                  {item.amount}
+                <Text style={{ marginLeft: "auto", fontWeight: "bold", color: item.status === "0" ? "green" : item.status === "1" ? "red" : "orange" }}>
+                ₦{item.amount}
                 </Text>
                 
               </View>
@@ -99,18 +172,19 @@ export default function TransactionsScreen() {
           )}
         />
 
+
         {/* Modal for Service Selection */}
-        <Modal animationType="slide" transparent={true} visible={modalVisible} >
-          <View style={{ flex: 1, justifyContent: "flex-end", alignItems: "center", backgroundColor: "rgba(0,0,0,0.5)" }}>
-            <View style={{  padding: 20,borderTopRightRadius:25,borderTopLeftRadius:25, width: "100%",   alignItems:'bottom', backgroundColor: "white"}}>
-              <Text style={{ fontSize: 18, fontWeight: "bold", marginBottom: 10 ,alignSelf:'center'}}>Select a Service</Text>
-              {services.map((service) => (
+        <Modal animationType="slide" transparent={true} visible={modalVisible}>
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalHeader}>Select a Service</Text>
+              {serviceOptions.map((service) => (
                 <TouchableOpacity key={service} onPress={() => { setSelectedService(service); setModalVisible(false); }}>
-                  <Text style={{ fontSize: 16, padding: 10,marginBottomwidth:1,marginBottomcolor:'#eee' }}>{service}</Text>
+                  <Text style={styles.modalItem}>{service}</Text>
                 </TouchableOpacity>
               ))}
-              <TouchableOpacity onPress={() => setModalVisible(false)} style={{ marginTop: 10,}}>
-                <Text style={{ fontSize: 16, color: "red", textAlign: "center" }}>Close</Text>
+              <TouchableOpacity onPress={() => setModalVisible(false)} style={styles.modalCloseButton}>
+                <Text style={styles.modalCloseText}>Close</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -118,4 +192,28 @@ export default function TransactionsScreen() {
       </View>
     </View>
   );
-}
+};
+
+const styles = StyleSheet.create({
+  container: { flex: 1, padding: 10, backgroundColor: "#fff" },
+  headerContainer: { flexDirection: "row", alignItems: "center", marginBottom: 10 },
+  dropdownIcon: { fontSize: 20, color: "#2899ff" },
+  headerTitle: { fontSize: 20, fontWeight: "bold", marginLeft: 10, color: "#2899ff" },
+  searchContainer: { flexDirection: "row", alignItems: "center", backgroundColor: "#eee", padding: 8, borderRadius: 10 },
+  searchInput: { flex: 1, fontSize: 16 },
+  searchIcon: { fontSize: 20, color: "#888" },
+  transactionItem: { flexDirection: "row", padding: 10, backgroundColor: "#f9f9f9", borderRadius: 5, marginTop: 8, alignItems: "center" },
+  providerLogo: { width: 40, height: 40, borderRadius: 8 },
+  transactionInfo: { marginLeft: 10 },
+  transactionProvider: { fontWeight: "bold" },
+  transactionDate: { color: "#666" },
+  transactionAmount: { marginLeft: "auto", fontWeight: "bold" },
+  modalOverlay: { flex: 1, justifyContent: "flex-end", alignItems: "center", backgroundColor: "rgba(0,0,0,0.5)" },
+  modalContent: { padding: 20, borderTopRightRadius: 25, borderTopLeftRadius: 25, width: "100%", backgroundColor: "white" },
+  modalHeader: { fontSize: 18, fontWeight: "bold", marginBottom: 10, alignSelf: "center" },
+  modalItem: { fontSize: 16, padding: 10, borderBottomWidth: 1, borderBottomColor: "#eee" },
+  modalCloseButton: { marginTop: 10, padding: 10, alignSelf: "center" },
+  modalCloseText: { fontSize: 16, color: "red" },
+});
+
+export default TransactionsScreen;

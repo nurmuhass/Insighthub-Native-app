@@ -5,12 +5,13 @@ import { Ionicons } from '@expo/vector-icons'; // For the back icon
 import { getStatusBarHeight } from 'react-native-status-bar-height';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
+import logo from '../../../assets/logo.png';
 
 export default function TransactionDetailScreen() {
   const { transaction } = useLocalSearchParams();
   const transactionData = JSON.parse(transaction);
   const router = useRouter();
-
+ const logoURI = Image.resolveAssetSource(logo).uri;
   // Function to generate PDF and share it
   const handleShare = async () => {
     try {
@@ -33,34 +34,31 @@ export default function TransactionDetailScreen() {
           </head>
           <body>
             <div class="header">
-              <img src="../../../images/logo.png" alt="Logo" />
+                  <img src="${logoURI}" alt="Logo" />
               <h1>Transaction Receipt</h1>
             </div>
             <div class="details">
               <div class="detail-row">
                 <span class="label">Transaction ID:</span>
-                <span class="value">${transactionData.id}</span>
+                <span class="value">${transactionData.transref}</span>
               </div>
               <div class="detail-row">
                 <span class="label">Status:</span>
-                <span class="value status">${transactionData.status}</span>
+                <span class="value status">${transactionData.status === '0' ? 'Success' : 'Failed'}</span>
               </div>
               <div class="detail-row">
                 <span class="label">Phone:</span>
-                <span class="value">${transactionData.details.phone}</span>
+                <span class="value">${transactionData.phone}</span>
               </div>
               <div class="detail-row">
-                <span class="label">Product:</span>
-                <span class="value">${transactionData.details.product}</span>
+                <span class="label">Provider:</span>
+                <span class="value">${transactionData.network}</span>
               </div>
               <div class="detail-row">
                 <span class="label">Description:</span>
-                <span class="value">${transactionData.details.description}</span>
+                <span class="value">${transactionData.servicedesc}</span>
               </div>
-              <div class="detail-row">
-                <span class="label">Amount:</span>
-                <span class="value">${transactionData.amount}</span>
-              </div>
+           
               <div class="detail-row">
                 <span class="label">Date:</span>
                 <span class="value">${transactionData.date}</span>
@@ -68,6 +66,7 @@ export default function TransactionDetailScreen() {
             </div>
             <div class="footer">
               <p>Thank you for using our service!</p>
+              <p>Insighthub.com.ng</p>
             </div>
           </body>
         </html>
@@ -109,19 +108,22 @@ export default function TransactionDetailScreen() {
         {/* Transaction Summary */}
         <View style={styles.summaryContainer}>
           <View style={styles.providerLogoContainer}>
-            {transactionData.provider === 'MTN SME' ? (
-              <Image source={require("../../../images/mtn.png")} style={styles.providerLogo} />
-            ) : transactionData.provider === 'GLO' ? (
-              <Image source={require("../../../images/glo.jpeg")} style={styles.providerLogo} />
-            ) : transactionData.provider === 'AIRTEL' ? (
-              <Image source={require("../../../images/airtel.jpeg")} style={styles.providerLogo} />
-            ) : null}
+                 { transactionData.servicedesc && transactionData.servicedesc.toUpperCase().includes('AIRTEL') && (
+     <Image source={require("../../../images/airtel.jpeg")} style={styles.providerLogo} />
+   )}
+   { transactionData.servicedesc && transactionData.servicedesc.toUpperCase().includes('MTN') && (
+     <Image source={require("../../../images/mtn.png")} style={styles.providerLogo} />
+   )}
+   { transactionData.servicedesc && transactionData.servicedesc.toUpperCase().includes('GLO') && (
+     <Image source={require("../../../images/glo.jpeg")} style={styles.providerLogo} />
+   )}
+   { transactionData.servicedesc && transactionData.servicedesc.toUpperCase().includes('9MOBILE') && (
+     <Image source={require("../../../images/9mobile.png")} style={styles.providerLogo} />
+   )}
             <Image source={require("../../../images/logo.png")} style={styles.providerLogo} />
           </View>
           <Text style={styles.summaryText}>
-            {transactionData.status === 'SUCCESSFUL'
-              ? `Dear Customer, You have successfully shared ${transactionData.details.description} to ${transactionData.details.phone}. Thank you.`
-              : `Dear Customer, You are currently unable to share ${transactionData.details.description} to ${transactionData.details.phone}.`}
+          {transactionData.servicedesc}{"\n"}
           </Text>
         </View>
 
@@ -130,29 +132,41 @@ export default function TransactionDetailScreen() {
           <Text style={styles.sectionTitle}>Transaction Information</Text>
           <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>Transaction ID:</Text>
-            <Text style={styles.detailValue}>{transactionData.id}</Text>
+            <Text style={styles.detailValue}>{transactionData.transref}</Text>
           </View>
           <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>Status:</Text>
-            <Text style={[styles.detailValue, { color: transactionData.status === 'SUCCESSFUL' ? 'green' : 'red' }]}>
-              {transactionData.status}
+            <Text style={[styles.detailValue, { color: transactionData.status === '0' ? 'green' : 'red' }]}>
+              {transactionData.status === '0' ? 'Success' : 'Failed'}
             </Text>
           </View>
           <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>Phone:</Text>
-            <Text style={styles.detailValue}>{transactionData.details.phone}</Text>
+            <Text style={styles.detailValue}>{transactionData.phone}</Text>
           </View>
           <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Product:</Text>
-            <Text style={styles.detailValue}>{transactionData.details.product}</Text>
+            <Text style={styles.detailLabel}>Provider:</Text>
+         
+             <Text style={styles.detailValue}> { transactionData.servicedesc && transactionData.servicedesc.toUpperCase().includes('AIRTEL') && (
+            'Airtel'
+            )}
+            { transactionData.servicedesc && transactionData.servicedesc.toUpperCase().includes('MTN') && (
+            'MTN'
+            )}
+            { transactionData.servicedesc && transactionData.servicedesc.toUpperCase().includes('GLO') && (
+            'Glo'
+            )}
+            { transactionData.servicedesc && transactionData.servicedesc.toUpperCase().includes('9MOBILE') && (
+            '9Mobile'
+            )}</Text>
           </View>
           <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>Description:</Text>
-            <Text style={styles.detailValue}>{transactionData.details.description}</Text>
+            <Text style={{width:'80%',marginLeft:15}} numberOfLines={3}>{transactionData.servicedesc}</Text>
           </View>
           <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>Amount:</Text>
-            <Text style={styles.detailValue}>{transactionData.amount}</Text>
+            <Text style={styles.detailValue}>₦ {transactionData.amount}</Text>
           </View>
           <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>Date:</Text>

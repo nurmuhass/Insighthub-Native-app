@@ -92,7 +92,7 @@ const index = () => {
     }
   };
 
-  const referralCode = "NURMUHASS";
+  const referralCode = profile !=null ? profile.sPhone : '';
 
   // Function to copy the referral code to clipboard
   const copyToClipboard2 = async () => {
@@ -111,8 +111,7 @@ const index = () => {
 
   const [showBalance, setShowBalance] = useState(false);
 
-  // Wallet Balance (Replace this with the actual balance)
-  const walletBalance = "₦120,500.00";
+
 
   const services = [
     { id: 1, name: "Data", icon: <FontAwesome5 name="globe" size={30} color="#7734eb" />, route: "Dashboard/BuyData" },
@@ -181,15 +180,15 @@ const moreServices = [
     
     </View>
 
-<View style={{backgroundColor:"#7734eb",padding:20,width:'96%',height:220,alignSelf:'center',marginTop:15,borderRadius:10}}>
+<View style={{backgroundColor:"#7734eb",padding:20,width:'96%',height:200,alignSelf:'center',marginTop:15,borderRadius:10}}>
 
 <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
       <View style={{ alignItems: "flex-start" }}>
         <Text style={{ fontSize: 18, color: "#fff" }}> Wallet Balance </Text>
-        <Text style={{ fontWeight: "bold", marginTop: 7, fontSize: 22, color: "#fff" }}>
-          {showBalance ? walletBalance : "**************"}
+        <Text style={{ fontWeight: "bold", marginTop: 7, fontSize: 22, color: "#fff",marginLeft:5 }}>
+          {showBalance ? profile.sWallet ? profile.sWallet : 0 : "**************"}
         </Text>
-        <Text style={{ fontSize: 18, color: "#fff", marginTop: 10 }}>CashBack Balance: 0.0</Text>
+        {/* <Text style={{ fontSize: 18, color: "#fff", marginTop: 10 }}>CashBack Balance: 0.0</Text> */}
       </View>
 
       <TouchableOpacity onPress={() => setShowBalance(!showBalance)}>
@@ -207,7 +206,7 @@ const moreServices = [
       <Text style={{ color: "#fff", marginTop: 5, fontWeight: "bold" }}>
         {accounts[index].name}
       </Text>
-      <View style={{ flexDirection: "row", justifyContent: "space-between", marginVertical: 3 }}>
+      <View style={{ flexDirection: "row", justifyContent: "space-between", marginVertical:8  }}>
         <Text style={{ color: "#fff", fontSize: 18, fontWeight: "bold" }}>
           {accounts[index].number}
         </Text>
