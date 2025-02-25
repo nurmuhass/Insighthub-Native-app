@@ -25,6 +25,26 @@ const TransactionsScreen = () => {
   const [selectedService, setSelectedService] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
 
+
+  const DummytransactionsData = {
+    "Buy Data": [
+    ],
+    "Airtime": [
+      ],
+    "Electricity": [
+      ],
+    "Cable": [
+    ],
+    'Education Pin': [
+    ],
+    'Bulk SMS': [
+    ],
+    'Recharge Card': [
+    ],
+    'Airime Swap': [
+    ],
+  };
+
   // Fetch real-time transactions on mount
   useEffect(() => {
     const loadAndFetchTransactions = async () => {
@@ -96,8 +116,9 @@ const TransactionsScreen = () => {
     return serviceMatch && searchMatch;
   });
 
-  // Get unique services from transactions for the modal
-  const serviceOptions = [...new Set(transactions.map(item => item.servicename))];
+  const serviceOptions = transactions.length > 0 
+  ? [...new Set(transactions.map(item => item.servicename))] 
+  : Object.keys(DummytransactionsData);
 
   return (
     <View style={{ paddingTop: getStatusBarHeight(), backgroundColor: '#fff', flex: 1 }}>
@@ -133,7 +154,19 @@ const TransactionsScreen = () => {
             </View> 
           )}
           renderItem={({ item }) => (   
-            <TouchableOpacity onPress={() => router.push({ pathname: "/Transaction/transaction-detail", params: { transaction: JSON.stringify(item) } })}>
+<TouchableOpacity
+  onPress={() => {
+    if (["Airtime", "Data"].includes(item.servicename)) {
+      router.push({
+        pathname: "/Transaction/transaction-detail",
+        params: { transaction: JSON.stringify(item) }
+      });
+    } else {
+      // Optionally, you can do nothing or show an alert/message.
+      
+    }
+  }}
+>
               <View style={{ flexDirection: "row", padding: 10, backgroundColor: "#f9f9f9", borderRadius: 5, marginTop: 8 }}>
               { item.servicedesc && item.servicedesc.toUpperCase().includes('AIRTEL') && (
   <Image source={require("../../../images/airtel.jpeg")} style={styles.providerLogo} />
@@ -147,6 +180,10 @@ const TransactionsScreen = () => {
 { item.servicedesc && item.servicedesc.toUpperCase().includes('9MOBILE') && (
   <Image source={require("../../../images/9mobile.png")} style={styles.providerLogo} />
 )}
+{ item.servicename === 'Electricity Bill' ?
+  <Image source={require("../../../images/electLogo.jpg")} style={styles.providerLogo} /> :
+  ''
+}
 
                 <View style={{ marginLeft: 10 }}>
     <Text style={{ fontWeight: "bold",alignSelf:'flex-start' }}> { item.servicedesc && item.servicedesc.toUpperCase().includes('AIRTEL') && (
@@ -160,7 +197,11 @@ const TransactionsScreen = () => {
 )}
 { item.servicedesc && item.servicedesc.toUpperCase().includes('9MOBILE') && (
 '9Mobile'
-)}</Text>
+)}
+{ item.servicename === 'Electricity Bill' ?  
+'Electricity Bill' : item.servicename === 'Wallet Credit' ? 'Wallet Credit' : ''
+}
+</Text>
                   <Text>{item.date}</Text>
                 </View>
                 <Text style={{ marginLeft: "auto", fontWeight: "bold", color: item.status === "0" ? "green" : item.status === "1" ? "red" : "orange" }}>

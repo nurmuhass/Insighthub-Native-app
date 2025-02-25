@@ -158,11 +158,14 @@ export default function TransactionDetailScreen() {
             )}
             { transactionData.servicedesc && transactionData.servicedesc.toUpperCase().includes('9MOBILE') && (
             '9Mobile'
+            )}
+              { transactionData.servicedesc && transactionData.servicedesc.toUpperCase().includes('Electric') && (
+            ' Electricity Bill'
             )}</Text>
           </View>
           <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>Description:</Text>
-            <Text style={{width:'80%',marginLeft:15}} numberOfLines={3}>{transactionData.servicedesc}</Text>
+            <Text style={{width:'70%',marginLeft:25,marginRight:5}} numberOfLines={4}>{transactionData.servicedesc}</Text>
           </View>
           <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>Amount:</Text>
