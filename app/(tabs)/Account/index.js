@@ -12,7 +12,7 @@ import { signOut } from '../../../store';
 
 const ProfileScreen = () => {
   const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
+  // const [loading, setLoading] = useState(true);
   const router = useRouter();
 
 
@@ -32,62 +32,33 @@ const ProfileScreen = () => {
   };
 
   useEffect(() => {
-    const fetchProfile = async () => {
+    const loadAndFetchProfile = async () => {
       try {
-        const token = await AsyncStorage.getItem('token');
-        console.log("Token from AsyncStorage in profile page:", token);
-        if (!token) {
-          throw new Error("No access token found");
-        }
-  
-        const response = await fetch('https://insighthub.com.ng/api/user/index.php', {
-          method: 'GET',
-          headers: {
-            'Authorization': `Token ${token}`,
-            'Accept': 'application/json'
-          },
-        });
-        
-        console.log("Response status:", response.status);
-        
-        const responseText = await response.text();
-        console.log("Response text:", responseText);
-        
-        let json;
-        try {
-          json = JSON.parse(responseText);
-        } catch (e) {
-          console.error("Error parsing JSON:", e);
-        }
-        
-        console.log("Raw API Response:", json);
-  
-        if (!json || json.status === "fail") {
-          console.error('Error:', json ? json.msg : "No data returned");
-          setProfile(null);
+        const rawApiResponse = await AsyncStorage.getItem("rawApiResponse");
+        if (rawApiResponse) {
+          const parsedResponse = JSON.parse(rawApiResponse);
+          setProfile(parsedResponse);
+          console.log("Profile loaded:", parsedResponse);
         } else {
-          // Remove the status field and use the remaining keys as profile data.
-          const { status, ...profileData } = json;
-          setProfile(profileData);
+          console.log("rawApiResponse not found in storage.");
         }
       } catch (error) {
-        console.error("Error fetching profile:", error);
-      } finally {
-        setLoading(false);
+        console.error("Error loading profile:", error);
+        Alert.alert("Error", "An error occurred while fetching transactions");
       }
     };
   
-    fetchProfile();
+    loadAndFetchProfile();
   }, []);
   
 
-  if (loading) {
-    return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color="#7734eb" />
-      </View>
-    );
-  }
+  // if (loading) {
+  //   return (
+  //     <View style={styles.center}>
+  //       <ActivityIndicator size="large" color="#7734eb" />
+  //     </View>
+  //   );
+  // }
 
   if (!profile) {
     return (

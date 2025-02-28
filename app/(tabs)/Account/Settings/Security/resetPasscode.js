@@ -1,144 +1,265 @@
-import { View, Text, TouchableOpacity, StyleSheet, StatusBar } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
-import { useState } from "react";
-import { getStatusBarHeight } from "react-native-status-bar-height";
+import React, { useState, useEffect } from 'react';
+import { 
+  View, 
+  Text, 
+  TextInput, 
+  TouchableOpacity, 
+  StyleSheet, 
+  StatusBar, 
+  ActivityIndicator, 
+  Alert 
+} from 'react-native';
+import { getStatusBarHeight } from 'react-native-status-bar-height';
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { signOut } from '../../../../../store';
 
-const ResetPinScreen = () => {
+const API_URL = "https://insighthub.com.ng/api/user/update_transaction_pin.php";
+
+const  resetPassCode= () => {
   const router = useRouter();
-  const [pin, setPin] = useState("");
+ 
+  // Step 1: Old PIN, Step 2: New PIN and confirmation
+  const [step, setStep] = useState(1);
+  const [oldPin, setOldPin] = useState("");
+  const [newPin, setNewPin] = useState("");
+  const [confirmPin, setConfirmPin] = useState("");
+  const [loading, setLoading] = useState(false);
+   const [userId, setUserId] = useState("1");
 
-  const handlePress = (value) => {
-    if (pin.length < 5) {
-      setPin(pin + value);
+  // sId from API response
+  const [sId, setSId] = useState("1");
+
+     const handleLogout = async () => {
+          signOut();
+          router.replace("/login");
+        };
+
+  // Load sId from AsyncStorage on mount
+  useEffect(() => {
+    const loadUserId = async () => {
+      try {
+        const rawApiResponse = await AsyncStorage.getItem("rawApiResponse");
+        if (rawApiResponse) {
+          const parsedResponse = JSON.parse(rawApiResponse);
+          setSId(parsedResponse.sId);
+          console.log("Profile loaded:", parsedResponse);
+        } else {
+          console.log("rawApiResponse not found in storage.");
+        }
+      } catch (error) {
+        console.error("Error loading profile:", error);
+        Alert.alert("Error", "An error occurred while fetching your profile");
+      }
+    };
+
+    loadUserId();
+  }, []);
+
+  const handleNextStep = () => {
+    if (oldPin.length !== 4) {
+      Alert.alert("Error", "Old PIN must be exactly 4 digits.");
+      return;
+    }
+    setStep(2);
+  };
+
+  useEffect(() => {
+    const loadAndFetchProfile = async () => {
+      try {
+
+        const token = await AsyncStorage.getItem("token");
+        if (!token) {
+          Alert.alert("Error", "No access token found");
+          return;
+        }
+
+        const rawApiResponse = await AsyncStorage.getItem("rawApiResponse");
+        if (rawApiResponse) {
+          const parsedResponse = JSON.parse(rawApiResponse);
+          setUserId(parsedResponse.sId);
+          console.log("Profile loaded:", parsedResponse);
+        } else {
+          console.log("rawApiResponse not found in storage.");
+        }
+      } catch (error) {
+        console.error("Error loading profile:", error);
+        Alert.alert("Error", "An error occurred while fetching transactions");
+      }
+    };
+  
+    loadAndFetchProfile();
+  }, []);
+  const handleUpdatePin = async () => {
+    if (newPin.length !== 4 || confirmPin.length !== 4) {
+      Alert.alert("Error", "New PIN and Confirm PIN must be exactly 4 digits.");
+      return;
+    }
+    if (newPin !== confirmPin) {
+      Alert.alert("Error", "New PIN and Confirm PIN do not match.");
+      return;
+    }
+    setLoading(true);
+  
+    try {
+      const token = await AsyncStorage.getItem("token");
+      if (!token) {
+        Alert.alert("Error", "No access token found");
+        return;
+      }
+  
+ 
+ 
+      const response = await fetch(API_URL, {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+          "Authorization": token,
+        },
+        body: JSON.stringify({ 
+          sId: userId,
+          oldPin: oldPin,
+          newPin: newPin}),
+      });
+
+      const result = await response.json();
+      console.log("Response:", result);
+  
+      if (result.status === "success") {
+        Alert.alert("Success", "Transaction PIN updated successfully.");
+        setOldPin("");
+        setNewPin("");
+        setConfirmPin("");
+        setStep(1); // Reset to first step
+        handleLogout();
+      } else {
+        Alert.alert("Error", result.msg || "Failed to update transaction PIN check current pin and retry.");
+        setOldPin("");
+        setNewPin("");
+        setConfirmPin("");
+        setStep(1);
+      }
+    } catch (error) {
+      console.error("Error updating PIN:", error);
+      Alert.alert("Error", "An error occurred while updating your PIN.");
+    } finally {
+      setLoading(false);
     }
   };
-
-  const handleBackspace = () => {
-    setPin(pin.slice(0, -1));
-  };
-
-  const handleNext = () => {
-    if (pin.length === 5) {
-      router.push("/next-step"); // Replace with your next step route
-    }
-  };
-
+  
   return (
-    <View style={{ paddingTop: getStatusBarHeight(), backgroundColor: "#fff", flex: 1, padding: 20 }}>
-      <StatusBar translucent barStyle="dark-content" backgroundColor="rgba(255, 255, 255, 0)" />
-
-      {/* Header */}
+    <View style={styles.container}>
+      <StatusBar 
+        translucent 
+        barStyle="dark-content" 
+        backgroundColor="rgba(255,255,255,0)" 
+      />
       <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
         <Ionicons name="arrow-back" size={24} color="#7734eb" />
       </TouchableOpacity>
+      <Text style={styles.title}>Reset PIN</Text>
 
-      {/* Title */}
-      <Text style={styles.title}>Reset Passcode</Text>
-      <Text style={styles.subtitle}>
-        Please enter your 5-digit PIN to start your pin changing process
-      </Text>
-
-      {/* PIN Dots */}
-      <View style={styles.pinContainer}>
-        {Array(5)
-          .fill(0)
-          .map((_, index) => (
-            <View
-              key={index}
-              style={[styles.pinDot, pin.length > index && styles.filledPinDot]}
-            />
-          ))}
-      </View>
-
-      {/* Keypad */}
-      <View style={styles.keypad}>
-        {[1, 2, 3, 4, 5, 6, 7, 8, 9, "back", pin.length === 5 ? "Next" : 0].map((item, index) => (
-          <TouchableOpacity
-            key={index}
-            style={styles.key}
-            onPress={() => {
-              if (item === "back") {
-                handleBackspace();
-              } else if (item === "Next") {
-                handleNext();
-              } else {
-                handlePress(item);
-              }
-            }}
-          >
-            {item === "back" ? (
-              <Ionicons name="arrow-back" size={24} color="#7734eb" />
+      {step === 1 && (
+        <>
+          <Text style={styles.subtitle}>Enter your current 4-digit PIN to begin.</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Old PIN"
+            keyboardType="number-pad"
+            value={oldPin}
+            onChangeText={setOldPin}
+            secureTextEntry
+            maxLength={4}
+          />
+          <TouchableOpacity style={styles.button} onPress={handleNextStep} disabled={loading}>
+            {loading ? (
+              <ActivityIndicator color="#fff" />
             ) : (
-              <Text style={[styles.keyText, item === "Next" && styles.nextText]}>{item}</Text>
+              <Text style={styles.buttonText}>Next</Text>
             )}
           </TouchableOpacity>
-        ))}
-      </View>
+        </>
+      )}
+
+      {step === 2 && (
+        <>
+          <Text style={styles.subtitle}>Enter your new 4-digit PIN and confirm it.</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="New PIN"
+            keyboardType="number-pad"
+            value={newPin}
+            onChangeText={setNewPin}
+            secureTextEntry
+            maxLength={4}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Confirm New PIN"
+            keyboardType="number-pad"
+            value={confirmPin}
+            onChangeText={setConfirmPin}
+            secureTextEntry
+            maxLength={4}
+          />
+          <TouchableOpacity style={styles.button} onPress={handleUpdatePin} disabled={loading}>
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.buttonText}>Update PIN</Text>
+            )}
+          </TouchableOpacity>
+        </>
+      )}
     </View>
   );
 };
 
-export default ResetPinScreen;
-
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#fff",
+    paddingTop: getStatusBarHeight(),
+    paddingHorizontal: 20,
+  },
   backButton: {
-    alignSelf: "flex-start",
+    marginTop: 10,
   },
   title: {
-    fontSize: 22,
-    fontWeight: "bold",
-    color: "#7734eb",
-    marginTop: 30,
-    alignSelf: "center",
-  },
-  subtitle: {
-    fontSize: 14,
-    color: "#7734eb",
-    textAlign: "center",
-    marginTop: 20,
-  },
-  pinContainer: {
-    flexDirection: "row",
-    marginVertical: 40,
-    alignSelf: "center",
-  },
-  pinDot: {
-    width: 15,
-    height: 15,
-    borderRadius: 10,
-    borderWidth: 2,
-    borderColor: "#7734eb",
-    marginHorizontal: 5,
-  },
-  filledPinDot: {
-    backgroundColor: "#7734eb",
-  },
-  keypad: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    width: "100%",
-  },
-  key: {
-    width: "30%",
-    aspectRatio: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    margin: 5,
-    marginVertical: 15,
-  },
-  keyText: {
     fontSize: 24,
     fontWeight: "bold",
     color: "#7734eb",
+    marginVertical: 20,
+    textAlign: "center",
   },
-  nextText: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#fff",
+  subtitle: {
+    fontSize: 16,
+    color: "#7734eb",
+    textAlign: "center",
+    marginBottom: 20,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    padding: 10,
+    borderRadius: 5,
+    marginVertical: 10,
+    height: 50,
+  },
+  button: {
     backgroundColor: "#7734eb",
-    paddingHorizontal: 15,
-    paddingVertical: 8,
-    borderRadius: 8,
+    padding: 15,
+    borderRadius: 5,
+    alignItems: "center",
+    marginTop: 20,
+  },
+  buttonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
   },
 });
+
+export default resetPassCode;

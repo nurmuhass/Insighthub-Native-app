@@ -1,9 +1,12 @@
 import { AntDesign, Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
-import { StatusBar } from "react-native";
+import React, { useEffect, useState } from "react";
+import { Linking, StatusBar } from "react-native";
 import { View, Text, TextInput, TouchableOpacity, Image, Alert } from "react-native";
 import { getStatusBarHeight } from "react-native-status-bar-height";
+import MovingText from "../../../components/Movingtext";
+import { ActivityIndicator } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const AirtimeSwap = () => {
   const [selectedNetwork, setSelectedNetwork] = useState(null);
@@ -25,7 +28,36 @@ const AirtimeSwap = () => {
     }
     Alert.alert("Success", `Data purchase successful for ${phoneNumber} on ${selectedNetwork.name}.`);
   };
+    const [profile, setProfile] = useState(null);
+  useEffect(() => {
+    const loadAndFetchProfile = async () => {
+      try {
+        const rawApiResponse = await AsyncStorage.getItem("rawApiResponse");
+        if (rawApiResponse) {
+          const parsedResponse = JSON.parse(rawApiResponse);
+          setProfile(parsedResponse);
+          console.log("Profile loaded:", parsedResponse);
+        } else {
+          console.log("rawApiResponse not found in storage.");
+        }
+      } catch (error) {
+        console.error("Error loading profile:", error);
+        Alert.alert("Error", "An error occurred while fetching transactions");
+      }
+    };
+  
+    loadAndFetchProfile();
+  }, []);
 
+  
+  
+  if (!profile) {
+    return (
+      <View style={{justifyContent:'center',alignItems:'center',flex:1}}>
+          <ActivityIndicator size="large" color="#7734eb" />
+      </View>
+    );
+  }
   return (
        <View style={{paddingTop:getStatusBarHeight(),backgroundColor:'#fff',flex:1,}}>
            <StatusBar
@@ -71,8 +103,11 @@ const AirtimeSwap = () => {
         <AntDesign name="wallet" size={24} color="black" />
         <Text style={{ fontWeight: "bold" ,marginLeft:5}}>Wallet Balance</Text>
         </View>
-        <Text style={{ color: "green", fontWeight: "bold" }}>N{walletBalance.toFixed(2)}</Text>
+        <Text style={{ color: "green", fontWeight: "bold" }}>N{profile.sWallet}</Text>
       </View>
+<View>
+      <MovingText text="Contact Admin 2 Convert Airtime 2 Cash. Click on the WhatsApp Icon, contact Admin and Convert Airtime 2 Cash" speed={40} style={{ color: '#7734eb',marginBottom:8 }} />
+    </View>
 <View style={{marginHorizontal:10}}>
 
 
@@ -111,14 +146,13 @@ const AirtimeSwap = () => {
           onChangeText={setSelectedAmount}
         />
 
-      {/* Buy Now Button */}
-      {/* <TouchableOpacity
-        style={{ backgroundColor: selectedNetwork && phoneNumber ? "#d9534f" : "#ccc", padding: 15, borderRadius: 5, marginTop: 20 }}
-        onPress={handleBuyData}
-        disabled={!selectedNetwork || !phoneNumber}
-      >
-        <Text style={{ color: "white", textAlign: "center" }}>Buy Now</Text>
-      </TouchableOpacity> */}
+    
+<TouchableOpacity
+  style={{ backgroundColor: selectedNetwork && phoneNumber ? "#d9534f" : "#ccc", padding: 15, borderRadius: 5, marginTop: 20 }}
+  onPress={() => Linking.openURL('https://api.whatsapp.com/send?phone=2349139287283')}
+>
+  <Text style={{ color: "white", textAlign: "center" }}>CONVERT AIRTIME 2 CASH</Text>
+</TouchableOpacity>
       </View>
 
     </View>
