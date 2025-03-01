@@ -18,7 +18,6 @@ const ProfileScreen = () => {
 
   const menuItems = [
     { id: 1, name: "Personal Information", description: "Edit your information", icon: "person-outline",route: "Account/personalinfo" },
-    { id: 2, name: "Reports", description: "Reported Transactions", icon: "bar-chart-outline" },
     { id: 3, name: "Settings", description: "Account, notification, location tracking", icon: "settings-outline" ,route: "Account/Settings"},
     { id: 4, name: "My Referral", description: "Referrals, commission", icon: "people-outline",route: "Dashboard/Referral" },
     { id: 5, name: "Dark Mode", description: "Toggle Dark Mode", icon: "moon-outline" },

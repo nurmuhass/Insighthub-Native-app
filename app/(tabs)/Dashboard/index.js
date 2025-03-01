@@ -11,17 +11,17 @@ import * as Clipboard from "expo-clipboard";
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+const API_URL = "https://insighthub.com.ng/api/user/fundWallet.php";
+
 const index = () => {
  const [profile, setProfile] = useState(null);
   const [index, setIndex] = useState(0);
     const [loading, setLoading] = useState(true);
-
+    const [walletData, setWalletData] = useState(null);
   const router = useRouter(); // Initialize the router
+    const [userId, setUserId] = useState("1");
   // Define two sets of data
-  const accounts = [
-    { name: "Palmpay", number: "1290876722", charge: "N25 Charge" },
-    { name: "Opay", number: "7638291920", charge: "N20 Charge" },
-  ];
+  
   useEffect(() => {
     const fetchProfile = async () => {
       try {
@@ -74,24 +74,93 @@ const index = () => {
   
     fetchProfile();
   }, []);
-  
-  // Function to toggle between accounts
-  const toggleAccount = () => {
-    setIndex((prevIndex) => (prevIndex === 0 ? 1 : 0));
-  };
 
-  // Function to copy account number to clipboard
-  const copyToClipboard = async () => {
-    await Clipboard.setStringAsync(accounts[index].number);
-    
-    // Show a toast message for Android, and an alert for iOS
-    if (Platform.OS === "android") {
-      ToastAndroid.show("Copied!", ToastAndroid.SHORT);
-    } else {
-      Alert.alert("Copied!", "Account number copied to clipboard.");
+  
+  useEffect(() => {
+    const loadAndFetchProfile = async () => {
+      try {
+
+        const token = await AsyncStorage.getItem("token");
+        if (!token) {
+          Alert.alert("Error", "No access token found");
+          return;
+        }
+
+        const rawApiResponse = await AsyncStorage.getItem("rawApiResponse");
+        if (rawApiResponse) {
+          const parsedResponse = JSON.parse(rawApiResponse);     
+          setUserId(parsedResponse.sId);
+        
+        } else {
+          console.log("rawApiResponse not found in storage.");
+        }
+      } catch (error) {
+        console.error("Error loading profile:", error);
+        Alert.alert("Error", "An error occurred while fetching transactions");
+      }
+    };
+  
+    loadAndFetchProfile();
+  }, []);
+
+  useEffect(() => {
+    const fetchWalletDetails = async () => {
+      if (!userId) return; // Ensure userId is available before making API call
+
+      try {
+        const token = await AsyncStorage.getItem("token");
+        if (!token) {
+          Alert.alert("Error", "No access token found");
+          return;
+        }
+
+        const response = await fetch(API_URL, {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+            Authorization: `Token ${token}`,
+          },
+          body: JSON.stringify({ sId: userId }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const result = await response.json();
+        console.log("API result:", result);
+
+        if (result.status === "success") {
+          setWalletData(result.wallet_details);
+        } else {
+          Alert.alert("Error", result.msg || "Failed to load data.");
+        }
+      } catch (error) {
+        console.error("Error fetching wallet details:", error);
+        Alert.alert("Error", "An error occurred while fetching wallet details.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchWalletDetails();
+  }, [userId]); // Re-fetch when userId changes
+
+  // Copy account number to clipboard
+  const copyToClipboard = () => {
+    if (walletData && walletData[index]) {
+      const accountNumber = walletData[index].account_no;
+      Alert.alert("Copied", `Account number ${accountNumber} copied!`);
     }
   };
 
+  // Toggle between accounts
+  const toggleAccount = () => {
+    if (walletData) {
+      setIndex((prevIndex) => (prevIndex + 1) % walletData.length);
+    }
+  };
   const referralCode = profile !=null ? profile.sPhone : '';
 
   // Function to copy the referral code to clipboard
@@ -201,21 +270,21 @@ const moreServices = [
     </View>
 
 <View style={{borderWidth:0.8,borderColor:'#fff',marginTop:10}}></View>
-
+     
 <View>
       <Text style={{ color: "#fff", marginTop: 5, fontWeight: "bold" }}>
-        {accounts[index].name}
+      {walletData[index]?.bank_name}
       </Text>
       <View style={{ flexDirection: "row", justifyContent: "space-between", marginVertical:8  }}>
         <Text style={{ color: "#fff", fontSize: 18, fontWeight: "bold" }}>
-          {accounts[index].number}
+        {walletData[index].account_no}
         </Text>
         <TouchableOpacity onPress={copyToClipboard}>
           <Feather name="copy" size={24} color="white" />
         </TouchableOpacity>
       </View>
       <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-        <Text style={{ color: "#fff", fontWeight: "bold" }}>{accounts[index].charge}</Text>
+        <Text style={{ color: "#fff", fontWeight: "bold" }}>{walletData[index].charges}</Text>
         <TouchableOpacity onPress={toggleAccount}>
           <Ionicons name="chevron-forward" size={24} color="white" />
         </TouchableOpacity>
