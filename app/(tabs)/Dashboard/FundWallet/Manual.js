@@ -1,13 +1,17 @@
 import { View, Text, StatusBar, TouchableOpacity } from 'react-native'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { getStatusBarHeight } from 'react-native-status-bar-height'
 import { Feather, Ionicons } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
+import AsyncStorage from '@react-native-async-storage/async-storage'
+import * as Clipboard from "expo-clipboard";
+import { Platform, ToastAndroid, Alert } from "react-native";
 
 const Manual = () => {
 
      const router = useRouter();
   const [index, setIndex] = useState(0);
+  const [siteSettings, setSiteSettings] = useState([]);
      const accounts = [
         { name: "Palmpay", number: "1290876722", charge: "No Charge" },
         { name: "Palmpay", number: "1290876722", charge: "No Charge" },
@@ -22,7 +26,7 @@ const Manual = () => {
       
         // Function to copy account number to clipboard
         const copyToClipboard = async () => {
-          await Clipboard.setStringAsync(accounts[index].number);
+          await Clipboard.setStringAsync(siteSettings.accountno);
           
           // Show a toast message for Android, and an alert for iOS
           if (Platform.OS === "android") {
@@ -31,6 +35,40 @@ const Manual = () => {
             Alert.alert("Copied!", "Account number copied to clipboard.");
           }
         };
+
+
+        useEffect(() => {
+          const getSiteSettings = async () => {
+            try {
+              const token = await AsyncStorage.getItem("token");
+              if (!token) {
+                Alert.alert("Error", "No access token found");
+                return;
+              }
+              const response = await fetch("https://insighthub.com.ng/api/user/getsitesettings.php", {
+                method: "GET",
+                headers: {
+                  "Accept": "application/json",
+                  "Authorization": `Token ${token}`
+                }
+              });
+              const json = await response.json();
+          
+              if (json.status === "success") {
+                setSiteSettings(json.getSiteSettings || []);
+                
+              } else {
+                Alert.alert("Error", json.msg || "Failed to load SiteSettings");
+              }
+            } catch (error) {
+              console.error("Error fetching SiteSettings:", error);
+              Alert.alert("Error", "An error occurred while fetching SiteSettings");
+            }
+          };
+          getSiteSettings();
+        }, []);
+        
+
   return (
     <View style={{paddingTop:getStatusBarHeight(),backgroundColor:'#fff',flex:1,   padding: 20,}}>
     <StatusBar
@@ -53,20 +91,20 @@ backgroundColor="rgba(255, 255, 255, 0)" // Transparent white color
     marginLeft: 10,}}>Manual Funding</Text>
 </View>
 
-<View style={{borderColor:'#7734eb',borderWidth:1,padding:34,borderRadius:10}}>
+<View style={{borderColor:'#7734eb',borderWidth:1,padding:30,borderRadius:10}}>
       <Text style={{ color: "gray", marginTop: 5, fontWeight: "bold" }}>
-        {accounts[index].name}
+        {siteSettings.bankname}
       </Text>
-      <View style={{ flexDirection: "row", justifyContent: "space-between", marginVertical: 3 }}>
+      <View style={{ flexDirection: "row", justifyContent: "space-between", marginVertical: 13 }}>
         <Text style={{ color: "gray", fontSize: 18, fontWeight: "bold" }}>
-          {accounts[index].number}
+          {siteSettings.accountno}
         </Text>
         <TouchableOpacity onPress={copyToClipboard}>
           <Feather name="copy" size={24} color="gray" />
         </TouchableOpacity>
       </View>
       <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-        <Text style={{ color: "gray", fontWeight: "bold" }}>{accounts[index].charge}</Text>
+        <Text style={{ color: "gray", fontWeight: "bold" }}>{siteSettings.accountname}</Text>
         <TouchableOpacity onPress={toggleAccount}>
           <Ionicons name="chevron-forward" size={24} color="#111" />
         </TouchableOpacity>

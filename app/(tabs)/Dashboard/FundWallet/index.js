@@ -4,6 +4,7 @@ import { useRouter } from "expo-router";
 import { getStatusBarHeight } from "react-native-status-bar-height";
 import { StatusBar } from "react-native";
 
+
 const index = () => {
   const router = useRouter();
 

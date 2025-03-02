@@ -5,16 +5,78 @@ import { TabView, SceneMap, TabBar } from "react-native-tab-view";
 import { useRouter } from "expo-router";
 import { getStatusBarHeight } from "react-native-status-bar-height";
 import { TextInput } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useEffect } from "react";
+import * as Clipboard from "expo-clipboard";
+import { Platform, ToastAndroid, Alert } from "react-native";
 
-const CampaignScreen = () => (
-  <View style={styles.tabContainer}>
+const index = () => {
+   const [profile, setProfile] = useState(null);
+  const router = useRouter();
+    // Function to copy the referral code to clipboard
+    const copyToClipboard2 = async () => {
+      await Clipboard.setStringAsync(referralCode);
+      
+      // Show a toast message for Android, and an alert for iOS
+      if (Platform.OS === "android") {
+        ToastAndroid.show("Referral Code Copied!", ToastAndroid.SHORT);
+      } else {
+        Alert.alert("Copied!", "Referral code copied to clipboard.");
+      }
+    };
+
+
+const referralCode = profile !=null ? profile.sPhone : '';
+
+  useEffect(() => {
+    const loadAndFetchProfile = async () => {
+      try {
+
+        const token = await AsyncStorage.getItem("token");
+        if (!token) {
+          Alert.alert("Error", "No access token found");
+          return;
+        }
+
+        const rawApiResponse = await AsyncStorage.getItem("rawApiResponse");
+        if (rawApiResponse) {
+          const parsedResponse = JSON.parse(rawApiResponse);     
+          setProfile(parsedResponse);
+        console.log(parsedResponse);
+        } else {
+          console.log("rawApiResponse not found in storage.");
+        }
+      } catch (error) {
+        console.error("Error loading profile:", error);
+        Alert.alert("Error", "An error occurred while fetching transactions");
+      }
+    };
+  
+    loadAndFetchProfile();
+  }, []);
+
+
+
+  return (
+      <View style={{paddingTop:getStatusBarHeight(),backgroundColor:'#fff',flex:1}}>
+          <StatusBar
+    translucent
+    barStyle="dark-content"
+    backgroundColor="rgba(255, 255, 255, 0)" // Transparent white color
+  />
+      <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+        <Ionicons name="arrow-back" size={24} color="#7734eb" />
+      </TouchableOpacity>
+      <Text style={styles.headerTitle}>Referral</Text>
+
+      <View style={styles.tabContainer}>
     <View style={styles.bonusCard}>
-      <Text style={styles.bonusText}>Referral Bonus</Text>
-      <Text style={styles.amount}>₦322.0</Text>
+      <Text style={styles.bonusText}>Wallet</Text>
+      <Text style={styles.amount}>N {profile !=null ? profile.sWallet : ''}</Text>
     </View>
-    <TouchableOpacity style={styles.moveBonusButton}>
+    {/* <TouchableOpacity style={styles.moveBonusButton}>
       <Text style={styles.moveBonusText}>Move Bonus to Wallet</Text>
-    </TouchableOpacity>
+    </TouchableOpacity> */}
 
     <ScrollView contentContainerStyle={styles.optionsContainer} showsVerticalScrollIndicator={false}>
 <Image source={require("../../../../images/freinds.png")} style={{    width: 250,
@@ -29,85 +91,23 @@ const CampaignScreen = () => (
     </Text>
     <Text style={styles.referralLabel}>Your unique referral code</Text>
     <View style={styles.referralBox}>
-      <Text style={styles.referralCode}>NurMuhass</Text>
+      <Text style={styles.referralCode}>{referralCode}</Text>
 
-      <TouchableOpacity style={styles.copyButton}>
+      <TouchableOpacity style={styles.copyButton} onPress={copyToClipboard2}>
         <Ionicons name="copy-outline" size={20} color="#fff" />
         <Text style={styles.copyText}>Copy referral code</Text>
       </TouchableOpacity>
     </View>
-    <TouchableOpacity style={styles.referButton}>
+    <TouchableOpacity style={styles.referButton} onPress={copyToClipboard2}>
       <Text style={styles.referButtonText}>Refer a friend</Text>
     </TouchableOpacity>
     </ScrollView>
 
   </View>
-);
-
-const ReferralsScreen = () => {
-  const referredUsers = ["John Doe", "Jane Smith", "Aliyu Musa", "Grace Obi"];
-  return (
-    <View style={styles.tabContainer}>
-      <FlatList
-        data={referredUsers}
-        keyExtractor={(item, index) => index.toString()}
-        renderItem={({ item }) => (
-          <View style={styles.userCard}>
-            <Text style={styles.userName}>{item}</Text>
-          </View>
-        )}
-      />
     </View>
   );
-};
-
-const ReferralScreen = () => {
-  const router = useRouter();
-  const [index, setIndex] = useState(0);
-  const [routes] = useState([
-    { key: "campaign", title: "Campaign" },
-    { key: "referrals", title: "Referrals" },
-  ]);
-
-  const referralCode = "EmBello";
-
-
-
-  const renderScene = SceneMap({
-    campaign: CampaignScreen,
-    referrals: ReferralsScreen,
-  });
-
-  return (
-      <View style={{paddingTop:getStatusBarHeight(),backgroundColor:'#fff',flex:1}}>
-          <StatusBar
-    translucent
-    barStyle="dark-content"
-    backgroundColor="rgba(255, 255, 255, 0)" // Transparent white color
-  />
-      <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-        <Ionicons name="arrow-back" size={24} color="#7734eb" />
-      </TouchableOpacity>
-      <Text style={styles.headerTitle}>Referral</Text>
-      <TabView
-        navigationState={{ index, routes }}
-        renderScene={renderScene}
-        onIndexChange={setIndex}
-        renderTabBar={(props) => (
-          <TabBar
-            {...props}
-            indicatorStyle={{ backgroundColor: "#7734eb" }}
-            style={{ backgroundColor: "#f1f1f1",color:"#7734eb" }}
-            labelStyle={{ color: "#7734eb", fontWeight: "bold" }}
-            t
-          />
-        )}
-      />
-    </View>
-  );
-};
-
-export default ReferralScreen;
+}
+export default index;
 
 const styles = StyleSheet.create({
   backButton: {
