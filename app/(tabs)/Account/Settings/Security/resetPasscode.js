@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, {useContext, useState, useEffect } from 'react';
 import { 
   View, 
   Text, 
@@ -14,10 +14,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { signOut } from '../../../../../store';
+import { ThemeContext } from "../../../../../ThemeContext";
 
 const API_URL = "https://insighthub.com.ng/api/user/update_transaction_pin.php";
 
-const  resetPassCode= () => {
+const resetPasscode = () => {
   const router = useRouter();
  
   // Step 1: Old PIN, Step 2: New PIN and confirmation
@@ -27,7 +28,7 @@ const  resetPassCode= () => {
   const [confirmPin, setConfirmPin] = useState("");
   const [loading, setLoading] = useState(false);
    const [userId, setUserId] = useState("1");
-
+  const { theme, toggleTheme } = useContext(ThemeContext);
   // sId from API response
   const [sId, setSId] = useState("1");
 
@@ -150,22 +151,22 @@ const  resetPassCode= () => {
   };
   
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, theme === "dark" ? styles.darkContainer : styles.lightContainer]}>
       <StatusBar 
         translucent 
         barStyle="dark-content" 
         backgroundColor="rgba(255,255,255,0)" 
       />
       <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-        <Ionicons name="arrow-back" size={24} color="#7734eb" />
+        <Ionicons name="arrow-back" size={24} color={theme === "dark" ? "#fff" : "#000"} />
       </TouchableOpacity>
-      <Text style={styles.title}>Reset PIN</Text>
+      <Text style={[styles.title, { color: theme === "dark" ? "#fff" : "#7734eb" }]}>Reset PIN</Text>
 
       {step === 1 && (
         <>
-          <Text style={styles.subtitle}>Enter your current 4-digit PIN to begin.</Text>
+          <Text style={[styles.subtitle, { color: theme === "dark" ? "#fff" : "#7734eb" }]}>Enter your current 4-digit PIN to begin.</Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, { color: theme === "dark" ? "#fff" : "#000" }]}
             placeholder="Old PIN"
             keyboardType="number-pad"
             value={oldPin}
@@ -185,9 +186,9 @@ const  resetPassCode= () => {
 
       {step === 2 && (
         <>
-          <Text style={styles.subtitle}>Enter your new 4-digit PIN and confirm it.</Text>
+          <Text style={[styles.subtitle, { color: theme === "dark" ? "#fff" : "#7734eb" }]}>Enter your new 4-digit PIN and confirm it.</Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, { color: theme === "dark" ? "#fff" : "#000" }]}
             placeholder="New PIN"
             keyboardType="number-pad"
             value={newPin}
@@ -196,7 +197,7 @@ const  resetPassCode= () => {
             maxLength={4}
           />
           <TextInput
-            style={styles.input}
+            style={[styles.input, { color: theme === "dark" ? "#fff" : "#000" }]}
             placeholder="Confirm New PIN"
             keyboardType="number-pad"
             value={confirmPin}
@@ -224,6 +225,8 @@ const styles = StyleSheet.create({
     paddingTop: getStatusBarHeight(),
     paddingHorizontal: 20,
   },
+  lightContainer: { backgroundColor: "#fff" },
+darkContainer: { backgroundColor: "#121212" },
   backButton: {
     marginTop: 10,
   },
@@ -262,4 +265,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default resetPassCode;
+export default resetPasscode;

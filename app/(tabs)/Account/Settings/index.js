@@ -3,10 +3,12 @@ import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { getStatusBarHeight } from "react-native-status-bar-height";
 import { StatusBar } from "react-native";
+import { ThemeContext } from "../../../../ThemeContext";
+import {useContext, useState } from "react";
 
 const index = () => {
   const router = useRouter();
-
+      const { theme, toggleTheme } = useContext(ThemeContext);
   const settingsOptions = [
     {
       title: "Account Security",
@@ -29,7 +31,7 @@ const index = () => {
   ];
 
   return (
-  <View style={{paddingTop:getStatusBarHeight(),backgroundColor:'#fff',flex:1,   padding: 20,}}>
+  <View style={[styles.container, theme === "dark" ? styles.darkContainer : styles.lightContainer]}>
           <StatusBar
     translucent
     barStyle="dark-content"
@@ -41,22 +43,22 @@ const index = () => {
 
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} color="black" />
+          <Ionicons name="arrow-back" size={24} color={theme === "dark" ? "#fff" : "#000"} />
         </TouchableOpacity>
-        <Text style={styles.headerText}>Settings</Text>
+        <Text style={[styles.headerText,{ color: theme === "dark" ? "#fff" : "#000" }]}>Settings</Text>
       </View>
 
       {/* Settings Options */}
       {settingsOptions.map((item, index) => (
-        <TouchableOpacity key={index} style={styles.option} onPress={() => router.push(item.route)}>
+        <TouchableOpacity key={index} style={[styles.option, theme === "dark" ? styles.darkContainer : styles.lightContainer]} onPress={() => router.push(item.route)}>
           <View style={styles.iconContainer}>
-            <MaterialIcons name={item.icon} size={24} color="black" />
+            <MaterialIcons name={item.icon} size={24} color={theme === "dark" ? "#000" : "#000"}/>
           </View>
           <View style={styles.textContainer}>
-            <Text style={styles.optionTitle}>{item.title}</Text>
-            <Text style={styles.optionSubtitle}>{item.subtitle}</Text>
+            <Text style={[styles.optionTitle,{ color: theme === "dark" ? "#fff" : "#000" }]}>{item.title}</Text>
+            <Text style={[styles.optionSubtitle,{ color: theme === "dark" ? "#fff" : "#000" }]}>{item.subtitle}</Text>
           </View>
-          <Ionicons name="chevron-forward" size={20} color="black" />
+          <Ionicons name="chevron-forward" size={20} color={theme === "dark" ? "#fff" : "#000"} />
         </TouchableOpacity>
       ))}
     </View>
@@ -66,7 +68,9 @@ const index = () => {
 export default index;
 
 const styles = StyleSheet.create({
-  
+  container: {paddingTop:getStatusBarHeight(),backgroundColor:'#fff',flex:1,   padding: 20},
+  lightContainer: { backgroundColor: "#fff" },
+darkContainer: { backgroundColor: "#121212" },
   header: {
     flexDirection: "row",
     alignItems: "center",

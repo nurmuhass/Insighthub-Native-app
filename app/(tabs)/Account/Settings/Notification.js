@@ -1,17 +1,18 @@
 import { View, Text, TouchableOpacity, StyleSheet, Switch } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import {useContext, useState } from "react";
 import { StatusBar } from "react-native";
 import { getStatusBarHeight } from "react-native-status-bar-height";
+import { ThemeContext } from "../../../../ThemeContext";
 
 const index = () => {
   const router = useRouter();
   const [pnotification, setPotification] = useState(false);
   const [enotification, setEnotification] = useState(false);
-
+      const { theme, toggleTheme } = useContext(ThemeContext);
   return (
-   <View style={{paddingTop:getStatusBarHeight(),backgroundColor:'#fff',flex:1,   padding: 20,}}>
+   <View style={[styles.container, theme === "dark" ? styles.darkContainer : styles.lightContainer]}>
            <StatusBar
      translucent
      barStyle="dark-content"
@@ -22,31 +23,31 @@ const index = () => {
 
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} color="black" />
+          <Ionicons name="arrow-back" size={24} color={theme === "dark" ? "#fff" : "#000"} />
         </TouchableOpacity>
-        <Text style={styles.headerText}>Notifications Settings</Text>
+        <Text style={[styles.headerText,{ color: theme === "dark" ? "#fff" : "#000" }]}>Notifications Settings</Text>
       </View>
 
     {/* Toggle Switches */}
-      <View style={styles.option}>
+      <View style={[styles.option, theme === "dark" ? styles.darkContainer : styles.lightContainer]}>
         <View style={styles.iconContainer}>
           <Ionicons name="notifications" size={24} color="black" />
         </View>
         <View style={styles.textContainer}>
-          <Text style={styles.optionTitle}>Push Notification</Text>
-          <Text style={styles.optionSubtitle}>Enable/Disable Push 
+          <Text style={[styles.optionTitle,{ color: theme === "dark" ? "#fff" : "#000" }]}>Push Notification</Text>
+          <Text style={[styles.optionSubtitle,{ color: theme === "dark" ? "#fff" : "#000" }]}>Enable/Disable Push 
             Notifications</Text>
         </View>
         <Switch value={pnotification} onValueChange={() => setPotification(!pnotification)} />
       </View>
 
-      <View style={styles.option}>
+      <View style={[styles.option, theme === "dark" ? styles.darkContainer : styles.lightContainer]}>
         <View style={styles.iconContainer}>
         <MaterialIcons name="email" size={24} color="black" />
         </View>
         <View style={styles.textContainer}>
-          <Text style={styles.optionTitle}>Email Notification</Text>
-          <Text style={styles.optionSubtitle}>Enable/Disable Email
+          <Text style={[styles.optionTitle,{ color: theme === "dark" ? "#fff" : "#000" }]}>Email Notification</Text>
+          <Text style={[styles.optionSubtitle,{ color: theme === "dark" ? "#fff" : "#000" }]}>Enable/Disable Email
           Notifications</Text>
         </View>
         <Switch value={enotification} onValueChange={() => setEnotification(!enotification)} />
@@ -59,7 +60,9 @@ const index = () => {
 export default index;
 
 const styles = StyleSheet.create({
-
+  container: {paddingTop:getStatusBarHeight(),backgroundColor:'#fff',flex:1,   padding: 20},
+  lightContainer: { backgroundColor: "#fff" },
+  darkContainer: { backgroundColor: "#121212" },
   header: {
     flexDirection: "row",
     alignItems: "center",

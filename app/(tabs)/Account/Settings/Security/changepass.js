@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext,useEffect, useState } from 'react';
 import { 
   View, 
   Text, 
@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { signOut } from '../../../../../store';
+import { ThemeContext } from "../../../../../ThemeContext";
 
 const API_URL = "https://insighthub.com.ng/api/user/update_password.php";
 
@@ -24,7 +25,7 @@ const UpdatePasswordScreen = () => {
   const [loading, setLoading] = useState(false);
   const [userId, setUserId] = useState("1");
   const router = useRouter();
-
+  const { theme, toggleTheme } = useContext(ThemeContext);
        const handleLogout = async () => {
             signOut();
             router.replace("/login");
@@ -125,7 +126,7 @@ const UpdatePasswordScreen = () => {
   
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, theme === "dark" ? styles.darkContainer : styles.lightContainer]}>
       <StatusBar 
         translucent 
         barStyle="dark-content" 
@@ -133,28 +134,32 @@ const UpdatePasswordScreen = () => {
       />
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} color="black" style={styles.backIcon} />
+          <Ionicons name="arrow-back" size={24} color={theme === "dark" ? "#fff" : "#000"} style={styles.backIcon} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Change Password</Text>
+        <Text style={[styles.headerTitle, { color: theme === "dark" ? "#fff" : "#000" }]}>Change Password</Text>
+        
       </View>
 
       <View style={styles.form}>
+            <Text style={[styles.header, { color: theme === "dark" ? "#fff" : "#7734eb" }]}>Old Password</Text>
         <TextInput 
-          style={styles.input}
+          style={[styles.input, { color: theme === "dark" ? "#fff" : "#000" }]}
           placeholder="Old Password"
           secureTextEntry={true}
           value={oPass}
           onChangeText={setOPass}
         />
+            <Text style={[styles.header, { color: theme === "dark" ? "#fff" : "#7734eb" }]}>New Password</Text>
         <TextInput 
-          style={styles.input}
+          style={[styles.input, { color: theme === "dark" ? "#fff" : "#000" }]}
           placeholder="New Password"
           secureTextEntry={true}
           value={nPass}
           onChangeText={setNPass}
         />
+            <Text style={[styles.header, { color: theme === "dark" ? "#fff" : "#7734eb" }]}>Confirm Password</Text>
         <TextInput 
-          style={styles.input}
+          style={[styles.input, { color: theme === "dark" ? "#fff" : "#000" }]}
           placeholder="Confirm Password"
           secureTextEntry={true}
           value={cPass}
@@ -180,13 +185,20 @@ const styles = StyleSheet.create({
     paddingTop: getStatusBarHeight(),
     paddingHorizontal: 20,
   },
+  lightContainer: { backgroundColor: "#fff" },
+darkContainer: { backgroundColor: "#121212" },
   header: {
     flexDirection: "row",
     alignItems: "center",
-    marginVertical: 20,
+    marginVertical: 5,
   },
   backIcon: {
     marginRight: 10,
+  },  subtitle: {
+    fontSize: 16,
+    color: "#7734eb",
+    textAlign: "center",
+    marginBottom: 20,
   },
   headerTitle: {
     fontSize: 24,

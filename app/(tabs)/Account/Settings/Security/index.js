@@ -1,15 +1,16 @@
 import { View, Text, TouchableOpacity, StyleSheet, Switch } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useContext,useState } from "react";
 import { StatusBar } from "react-native";
 import { getStatusBarHeight } from "react-native-status-bar-height";
+import { ThemeContext } from "../../../../../ThemeContext";
 
 const index = () => {
   const router = useRouter();
   const [biometricEnabled, setBiometricEnabled] = useState(false);
   const [walletBalanceVisible, setWalletBalanceVisible] = useState(false);
-
+  const { theme, toggleTheme } = useContext(ThemeContext);
   const securityOptions = [
     {
       title: "Change Password",
@@ -32,7 +33,7 @@ const index = () => {
   ];
 
   return (
-   <View style={{paddingTop:getStatusBarHeight(),backgroundColor:'#fff',flex:1,   padding: 20,}}>
+   <View style={[styles.container, theme === "dark" ? styles.darkContainer : styles.lightContainer]}>
            <StatusBar
      translucent
      barStyle="dark-content"
@@ -41,44 +42,44 @@ const index = () => {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} color="black" />
+          <Ionicons name="arrow-back" size={24}  color={theme === "dark" ? "#fff" : "#000"}  />
         </TouchableOpacity>
-        <Text style={styles.headerText}>Security</Text>
+        <Text style={[styles.headerText, { color: theme === "dark" ? "#fff" : "#000" }]}>Security</Text>
       </View>
 
       {/* Security Options */}
       {securityOptions.map((item, index) => (
-        <TouchableOpacity key={index} style={styles.option} onPress={() => router.push(item.route)}>
+        <TouchableOpacity key={index} style={[styles.option, theme === "dark" ? styles.darkContainer : styles.lightContainer]} onPress={() => router.push(item.route)}>
           <View style={styles.iconContainer}>
-            <MaterialIcons name={item.icon} size={24} color="black" />
+            <MaterialIcons name={item.icon} size={24}  color={theme === "dark" ? "#000" : "#000"}  />
           </View>
           <View style={styles.textContainer}>
-            <Text style={styles.optionTitle}>{item.title}</Text>
-            <Text style={styles.optionSubtitle}>{item.subtitle}</Text>
+            <Text style={[styles.optionTitle, { color: theme === "dark" ? "#fff" : "#000" }]}>{item.title}</Text>
+            <Text style={[styles.optionSubtitle, { color: theme === "dark" ? "#fff" : "#000" }]}>{item.subtitle}</Text>
           </View>
-          <Ionicons name="chevron-forward" size={20} color="black" />
+          <Ionicons name="chevron-forward" size={20}  color={theme === "dark" ? "#fff" : "#000"}  />
         </TouchableOpacity>
       ))}
 
       {/* Toggle Switches */}
-      <View style={styles.option}>
+      <View style={[styles.option, theme === "dark" ? styles.darkContainer : styles.lightContainer]}>
         <View style={styles.iconContainer}>
-          <MaterialIcons name="fingerprint" size={24} color="black" />
+          <MaterialIcons name="fingerprint" size={24}  color={theme === "dark" ? "#000" : "#000"}  />
         </View>
         <View style={styles.textContainer}>
-          <Text style={styles.optionTitle}>Biometric</Text>
-          <Text style={styles.optionSubtitle}>Activate Face ID or Fingerprint</Text>
+          <Text style={[styles.optionTitle, { color: theme === "dark" ? "#fff" : "#000" }]}>Biometric</Text>
+          <Text style={[styles.optionSubtitle, { color: theme === "dark" ? "#fff" : "#000" }]}>Activate Face ID or Fingerprint</Text>
         </View>
         <Switch value={biometricEnabled} onValueChange={() => setBiometricEnabled(!biometricEnabled)} />
       </View>
 
-      <View style={styles.option}>
+      <View style={[styles.option, theme === "dark" ? styles.darkContainer : styles.lightContainer]}>
         <View style={styles.iconContainer}>
-          <MaterialIcons name="visibility" size={24} color="black" />
+          <MaterialIcons name="visibility" size={24}  color={theme === "dark" ? "#000" : "#000"}  />
         </View>
         <View style={styles.textContainer}>
-          <Text style={styles.optionTitle}>Show Wallet Balance</Text>
-          <Text style={styles.optionSubtitle}>Hide or show wallet balance</Text>
+          <Text style={[styles.optionTitle, { color: theme === "dark" ? "#fff" : "#000" }]}>Show Wallet Balance</Text>
+          <Text style={[styles.optionSubtitle, { color: theme === "dark" ? "#fff" : "#000" }]}>Hide or show wallet balance</Text>
         </View>
         <Switch value={walletBalanceVisible} onValueChange={() => setWalletBalanceVisible(!walletBalanceVisible)} />
       </View>
@@ -90,7 +91,9 @@ const index = () => {
 export default index;
 
 const styles = StyleSheet.create({
-
+  container:{paddingTop:getStatusBarHeight(),backgroundColor:'#fff',flex:1,   padding: 20},
+  lightContainer: { backgroundColor: "#fff" },
+  darkContainer: { backgroundColor: "#121212" },
   header: {
     flexDirection: "row",
     alignItems: "center",
