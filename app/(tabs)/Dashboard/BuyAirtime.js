@@ -1,6 +1,6 @@
 // BuyAirtime.js
 
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -21,6 +21,8 @@ import { TouchableHighlight } from "react-native";
 import { FlatList } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import * as Contacts from 'expo-contacts';
+import { ThemeContext } from "../../../ThemeContext"; 
+import { getStatusBarHeight } from "react-native-status-bar-height";
 // Helper function to generate a transaction reference
 const generateTransRef = () => "TRANS" + Date.now();
 
@@ -44,7 +46,7 @@ const BuyAirtimeScreen = () => {
  const [reauthVisible, setReauthVisible] = useState(false);
    const [contacts, setContacts] = useState([]);
  const [modalVisible, setModalVisible] = useState(false);
-
+  const { theme, toggleTheme } = useContext(ThemeContext);
   // --- Fetch Networks and Airtime Discount Data on mount ---
   useEffect(() => {
     const fetchData = async () => {
@@ -284,16 +286,16 @@ const BuyAirtimeScreen = () => {
     }
   };
   return (
-    <ScrollView style={styles.container}>
-      <Text style={styles.header}>Buy Airtime</Text>
+    <ScrollView style={[styles.container, theme === "dark" ? styles.darkContainer : styles.lightContainer]}>
+      <Text style={[styles.header, { color: theme === "dark" ? "#fff" : "#000" }]}>Buy Airtime</Text>
       
       {/* Network Picker */}
-      <Text style={styles.subHeader}>Select Network</Text>
-      <View style={styles.pickerContainer}>
+      <Text style={[styles.subHeader, { color: theme === "dark" ? "#fff" : "#000" }]}>Select Network</Text>
+      <View style={[styles.pickerContainer, { color: theme === "dark" ? "#fff" : "#000" }]}>
         <Picker
           selectedValue={selectedNetwork}
           onValueChange={(itemValue) => setSelectedNetwork(itemValue)}
-          style={styles.picker}
+          style={[styles.picker, { color: theme === "dark" ? "#fff" : "#000" }]}
         >
           <Picker.Item label="Select Network" value="" />
           {networks.map((net) => (
@@ -308,12 +310,12 @@ const BuyAirtimeScreen = () => {
       </View>
       
       {/* Airtime Type Picker */}
-      <Text style={styles.subHeader}>Select Airtime Type</Text>
-      <View style={styles.pickerContainer}>
+      <Text style={[styles.subHeader, { color: theme === "dark" ? "#fff" : "#000" }]}>Select Airtime Type</Text>
+      <View style={[styles.pickerContainer, { color: theme === "dark" ? "#fff" : "#000" }]}>
         <Picker
           selectedValue={selectedAirtimeType}
           onValueChange={(itemValue) => setSelectedAirtimeType(itemValue)}
-          style={styles.picker}
+          style={[styles.picker, { color: theme === "dark" ? "#fff" : "#000" }]}
         >
           {availableAirtimeTypes.length === 0 ? (
             <Picker.Item label="Select Type" value="" />
@@ -326,10 +328,10 @@ const BuyAirtimeScreen = () => {
       </View>
       
       {/* Phone Number Input */}
-      <Text style={styles.subHeader}>Phone Number</Text>
+      <Text style={[styles.subHeader, { color: theme === "dark" ? "#fff" : "#000" }]}>Phone Number</Text>
  <View style={{position:'relative'}}>
       <TextInput
-        style={styles.input}
+        style={[styles.input, { color: theme === "dark" ? "#fff" : "#000" }]}
         placeholder="Enter phone number"
         keyboardType="phone-pad"
         value={phone}
@@ -343,9 +345,9 @@ const BuyAirtimeScreen = () => {
       </View>
 
       {/* Airtime Amount Input */}
-      <Text style={styles.subHeader}>Amount</Text>
+      <Text style={[styles.subHeader, { color: theme === "dark" ? "#fff" : "#000" }]}>Amount</Text>
       <TextInput
-        style={styles.input}
+        style={[styles.input, { color: theme === "dark" ? "#fff" : "#000" }]}
         placeholder="Enter Amount"
         keyboardType="numeric"
         value={airtimeAmount}
@@ -353,17 +355,17 @@ const BuyAirtimeScreen = () => {
       />
       
       {/* Calculated Amount To Pay */}
-      <Text style={styles.subHeader}>Amount To Pay</Text>
+      <Text style={[styles.subHeader, { color: theme === "dark" ? "#fff" : "#000" }]}>Amount To Pay</Text>
       <TextInput
-        style={styles.input}
+        style={[styles.input, { color: theme === "dark" ? "#fff" : "#000" }]}
         value={amountToPay}
         editable={false}
       />
       
       {/* Discount Display */}
-      <Text style={styles.subHeader}>Discount</Text>
+      <Text style={[styles.subHeader, { color: theme === "dark" ? "#fff" : "#000" }]}>Discount</Text>
       <TextInput
-        style={styles.input}
+        style={[styles.input, { color: theme === "dark" ? "#fff" : "#000" }]}
         value={discountDisplay}
         editable={false}
       />
@@ -425,7 +427,9 @@ const BuyAirtimeScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: "#fff" },
+  container: { flex: 1, paddingTop: getStatusBarHeight(),paddingHorizontal:15,  backgroundColor: "#fff" },
+  lightContainer: { backgroundColor: "#fff" },
+  darkContainer: { backgroundColor: "#121212" },
   header: { fontSize: 24, fontWeight: "bold", textAlign: "center", marginBottom: 10, color: "#7734eb" },
   subHeader: { fontSize: 16, marginTop: 10, marginBottom: 5, fontWeight: "bold", color: "#333" },
   pickerContainer: { borderWidth: 1, borderColor: "#ccc", borderRadius: 8, marginBottom: 15 },

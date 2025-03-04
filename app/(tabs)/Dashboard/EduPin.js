@@ -1,6 +1,6 @@
 // BuyExamPin.js
 
-import React, { useEffect, useState } from 'react';
+import React, { useContext,useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -15,13 +15,14 @@ import { Picker } from '@react-native-picker/picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import ReAuthModalWrapper from '../../../components/ReAuthModalWrapper';
+import { ThemeContext } from "../../../ThemeContext"; 
 
 // Helper function to generate a transaction reference
 const generateTransRef = () => "EXAMPIN" + Date.now();
 
 const BuyExamPin = () => {
   const router = useRouter();
-  
+    const { theme, toggleTheme } = useContext(ThemeContext);
   // State variables
   const [examProviders, setExamProviders] = useState([]);
   const [selectedProvider, setSelectedProvider] = useState("");
@@ -168,16 +169,16 @@ const BuyExamPin = () => {
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <Text style={styles.header}>Purchase Exam Pin</Text>
+    <ScrollView style={[styles.container, theme === "dark" ? styles.darkContainer : styles.lightContainer]}>
+      <Text style={[styles.header, { color: theme === "dark" ? "#fff" : "#000" }]}>Purchase Exam Pin</Text>
       
       {/* Exam Provider Picker */}
-      <Text style={styles.label}>Select Exam Provider</Text>
+      <Text style={[styles.label, { color: theme === "dark" ? "#fff" : "#000" }]}>Select Exam Provider</Text>
       <View style={styles.pickerContainer}>
         <Picker
           selectedValue={selectedProvider}
           onValueChange={(itemValue) => setSelectedProvider(itemValue)}
-          style={styles.picker}
+          style={[styles.picker, { color: theme === "dark" ? "#fff" : "#000" }]}
         >
           <Picker.Item label="Select Provider" value="" />
           {examProviders.map(provider => (
@@ -192,9 +193,9 @@ const BuyExamPin = () => {
       </View>
       
       {/* Quantity Input */}
-      <Text style={styles.label}>Quantity</Text>
+      <Text style={[styles.label, { color: theme === "dark" ? "#fff" : "#000" }]}>Quantity</Text>
       <TextInput
-        style={styles.input}
+        style={[styles.input, { color: theme === "dark" ? "#fff" : "#000" }]}
         placeholder="Enter Quantity"
         keyboardType="numeric"
         value={quantity}
@@ -202,9 +203,9 @@ const BuyExamPin = () => {
       />
       
       {/* Amount To Pay Display */}
-      <Text style={styles.label}>Amount To Pay</Text>
+      <Text style={[styles.label, { color: theme === "dark" ? "#fff" : "#000" }]}>Amount To Pay</Text>
       <TextInput
-        style={styles.input}
+        style={[styles.input, { color: theme === "dark" ? "#fff" : "#000" }]}
         value={amountToPay}
         editable={false}
       />
@@ -228,6 +229,8 @@ const BuyExamPin = () => {
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 20, backgroundColor: "#fff" },
+  lightContainer: { backgroundColor: "#fff" },
+  darkContainer: { backgroundColor: "#121212" },
   header: { fontSize: 24, fontWeight: "bold", textAlign: "center", marginBottom: 20, color: "#7734eb" },
   label: { fontSize: 16, fontWeight: "bold", marginBottom: 5, color: "#333" },
   pickerContainer: { borderWidth: 1, borderColor: "#ccc", borderRadius: 8, marginBottom: 15 },

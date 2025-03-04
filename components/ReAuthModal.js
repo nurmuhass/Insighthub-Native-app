@@ -1,6 +1,6 @@
 // ReAuthModal.js
 
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { 
   View, 
   Text, 
@@ -15,10 +15,12 @@ import * as LocalAuthentication from 'expo-local-authentication';
 import { useRouter } from 'expo-router';
 import { getStatusBarHeight } from 'react-native-status-bar-height';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { ThemeContext } from "../ThemeContext"; 
+
 
 const ReAuthModal = ({ onUnlock, onCancel,combinedData }) => {
   const router = useRouter();
-  
+      const { theme, toggleTheme } = useContext(ThemeContext);
   const [enteredPin, setEnteredPin] = useState("");
   const [storedPin, setStoredPin] = useState("");
   const [pinLength] = useState(4); 
@@ -108,7 +110,7 @@ const ReAuthModal = ({ onUnlock, onCancel,combinedData }) => {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, theme === "dark" ? styles.darkContainer : styles.lightContainer]}>
 
         { combinedData !=null  ?
         
@@ -200,6 +202,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center"
   },
+  lightContainer: { backgroundColor: "#fff" },
+  darkContainer: { backgroundColor: "#121212" },
   avatarContainer: {
     marginBottom: 40,
     backgroundColor:'#f0f0f0',

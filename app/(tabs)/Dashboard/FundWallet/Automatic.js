@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useContext,useState, useEffect } from 'react';
 import { 
   View, 
   Text, 
@@ -12,6 +12,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { ThemeContext } from "../../../../ThemeContext"; 
 
 const API_URL = "https://insighthub.com.ng/api/user/fundWallet.php";
 
@@ -20,7 +21,7 @@ const FundWallet = () => {
   const [loading, setLoading] = useState(true);
   const [walletData, setWalletData] = useState(null);
   const [userId, setUserId] = useState("1");
-
+    const { theme, toggleTheme } = useContext(ThemeContext);
   useEffect(() => {
     const loadAndFetchProfile = async () => {
       try {
@@ -102,23 +103,23 @@ const FundWallet = () => {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, theme === "dark" ? styles.darkContainer : styles.lightContainer]}>
       <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
         <Ionicons name="arrow-back" size={24} color="#7734eb" />
       </TouchableOpacity>
-      <Text style={styles.title}>Fund Wallet</Text>
+      <Text style={[styles.title, { color: theme === "dark" ? "#fff" : "#000" }]}>Fund Wallet</Text>
 
       {loading ? (
         <ActivityIndicator size="large" color="#7734eb" />
       ) : (
         <ScrollView>
         {walletData && walletData.map((bank, index) => (
-  <View key={index} style={styles.bankContainer}>
-    <Text style={styles.bankName}>Bank Name: {bank.bank_name}</Text>
-    <Text style={styles.accountNo}>Account No: {bank.account_no}</Text>
-    <Text style={styles.note}>Note: Automated bank transfer attracts additional charges of {bank.charges} only.</Text>
+  <View key={index} style={[styles.bankContainer, { backgroundColor: theme === "dark" ? "#000" : "#fff" }]}>
+    <Text style={[styles.bankName, { color: theme === "dark" ? "#fff" : "#000" }]}>Bank Name: {bank.bank_name}</Text>
+    <Text style={[styles.accountNo, { color: theme === "dark" ? "#fff" : "#000" }]}>Account No: {bank.account_no}</Text>
+    <Text style={[styles.note, { color: theme === "dark" ? "#fff" : "#000" }]}>Note: Automated bank transfer attracts additional charges of {bank.charges} only.</Text>
     <TouchableOpacity style={styles.copyButton} onPress={() => copyToClipboard(bank.account_no)}>
-      <Text style={styles.copyButtonText}>Copy Account No</Text>
+      <Text style={[styles.copyButtonText, { color: theme === "dark" ? "#fff" : "#000" }]}>Copy Account No</Text>
     </TouchableOpacity>
   </View>
 ))}
@@ -136,6 +137,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 40,
   },
+  lightContainer: { backgroundColor: "#fff" },
+  darkContainer: { backgroundColor: "#121212" },
   backButton: {
     marginBottom: 10,
   },

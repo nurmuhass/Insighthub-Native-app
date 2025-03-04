@@ -1,13 +1,15 @@
-import React from "react";
+
 import { View, Text, TouchableOpacity, Linking, StyleSheet, Image, StatusBar } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { ScrollView } from "react-native";
 import { getStatusBarHeight } from "react-native-status-bar-height";
+import React, { useContext,useEffect, useState } from 'react';
+import { ThemeContext } from "../../../ThemeContext"
 
 const SupportScreen = () => {
   const router = useRouter();
-
+      const { theme, toggleTheme } = useContext(ThemeContext);
   const openWhatsApp = () => {
     Linking.openURL("https://wa.me/234XXXXXXXXXX"); // Replace with your WhatsApp number
   };
@@ -21,7 +23,7 @@ const SupportScreen = () => {
   };
 
   return (
-       <View style={{paddingTop:getStatusBarHeight(),backgroundColor:'#fff',flex:1,padding:10}}>
+       <View style={[styles.container, theme === "dark" ? styles.darkContainer : styles.lightContainer]}>
            <StatusBar
      translucent
      barStyle="dark-content"
@@ -31,13 +33,13 @@ const SupportScreen = () => {
 
 
       <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-        <Ionicons name="arrow-back" size={24} color="#7734eb" />
+        <Ionicons name="arrow-back" size={24} color={theme === "dark" ? "#fff" : "#000"} />
       </TouchableOpacity>
 
       <View style={{alignItems:'center'}}>
 
       {/* Title */}
-      <Text style={styles.title}>Support</Text>
+      <Text style={[styles.title, { color: theme === "dark" ? "#fff" : "#000" }]}>Support</Text>
       </View>
 
 
@@ -45,8 +47,8 @@ const SupportScreen = () => {
       <Image source={require("../../../images/support.png")} style={styles.image} />
 
       {/* Description */}
-      <Text style={styles.subtitle}>What assistance can we offer you?</Text>
-      <Text style={styles.description}>
+      <Text style={[styles.subtitle, { color: theme === "dark" ? "#fff" : "#000" }]}>What assistance can we offer you?</Text>
+      <Text style={[styles.description, { color: theme === "dark" ? "#fff" : "#000" }]}>
         We are dedicated to ensuring you have the best possible experience. If you
         have any questions, concerns, or issues, we are here to assist you.
       </Text>
@@ -54,22 +56,22 @@ const SupportScreen = () => {
       {/* Support Options */}
       <ScrollView contentContainerStyle={styles.optionsContainer} showsVerticalScrollIndicator={false}>
 
-        <TouchableOpacity style={styles.optionCard} onPress={openWhatsApp}>
+        <TouchableOpacity style={[styles.optionCard,{backgroundColor:theme ==="Dark" ? "#000" : "fff"}]} onPress={openWhatsApp}>
           <Ionicons name="logo-whatsapp" size={40} color="#25D366" />
-          <Text style={styles.optionText}>WhatsApp</Text>
-          <Text style={styles.optionSubtext}>Say hi</Text>
+          <Text style={[styles.optionText, { color: theme === "dark" ? "#fff" : "#000" }]}>WhatsApp</Text>
+          <Text style={[styles.optionSubtext, { color: theme === "dark" ? "#fff" : "#000" }]}>Say hi</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.optionCard} onPress={openWhatsAppGroup}>
+        <TouchableOpacity style={[styles.optionCard,{backgroundColor:theme ==="Dark" ? "#000" : "fff"}]} onPress={openWhatsAppGroup}>
           <Ionicons name="logo-whatsapp" size={40} color="#25D366" />
-          <Text style={styles.optionText}>WhatsApp Group</Text>
-          <Text style={styles.optionSubtext}>Join Now</Text>
+          <Text style={[styles.optionText, { color: theme === "dark" ? "#fff" : "#000" }]}>WhatsApp Group</Text>
+          <Text style={[styles.optionSubtext, { color: theme === "dark" ? "#fff" : "#000" }]}>Join Now</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.optionCard} onPress={openWebsite}>
+        <TouchableOpacity style={[styles.optionCard,{backgroundColor:theme ==="Dark" ? "#000" : "fff"}]} onPress={openWebsite}>
           <Ionicons name="globe-outline" size={40} color="#E4405F" />
-          <Text style={styles.optionText}>Our Website</Text>
-          <Text style={styles.optionSubtext}>Visit Now</Text>
+          <Text style={[styles.optionText, { color: theme === "dark" ? "#fff" : "#000" }]}>Our Website</Text>
+          <Text style={[styles.optionSubtext, { color: theme === "dark" ? "#fff" : "#000" }]}>Visit Now</Text>
         </TouchableOpacity>
     
 </ScrollView>
@@ -81,7 +83,9 @@ const SupportScreen = () => {
 export default SupportScreen;
 
 const styles = StyleSheet.create({
-
+  container:{paddingTop:getStatusBarHeight(),backgroundColor:'#fff',flex:1,padding:10},
+  lightContainer: { backgroundColor: "#fff" },
+  darkContainer: { backgroundColor: "#121212" },
   backButton: {
     alignSelf: "flex-start",
     marginBottom:0
@@ -89,7 +93,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 22,
     fontWeight: "bold",
-    color: "#7734eb",
+    color: "#000",
     marginTop: 0,
   },
   image: {

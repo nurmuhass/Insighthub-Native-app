@@ -1,28 +1,26 @@
-// profile.js
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, Image,  ScrollView, TouchableOpacity, StatusBar } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { useContext, useEffect, useState } from "react";
+import { View, Text, StyleSheet, ActivityIndicator, Image, ScrollView, TouchableOpacity, StatusBar } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { Icon } from "@rneui/themed";
 import { getStatusBarHeight } from "react-native-status-bar-height";
 import { Ionicons } from "@expo/vector-icons";
-import { signOut } from '../../../store';
-
-
+import { signOut } from "../../../store";
+import { ThemeContext } from "../../../ThemeContext"; 
 
 const ProfileScreen = () => {
+  const { theme, toggleTheme } = useContext(ThemeContext);
   const [profile, setProfile] = useState(null);
-  // const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-
   const menuItems = [
-    { id: 1, name: "Personal Information", description: "Edit your information", icon: "person-outline",route: "Account/personalinfo" },
-    { id: 3, name: "Settings", description: "Account, notification, location tracking", icon: "settings-outline" ,route: "Account/Settings"},
-    { id: 4, name: "My Referral", description: "Referrals, commission", icon: "people-outline",route: "Dashboard/Referral" },
-    { id: 5, name: "Dark Mode", description: "Toggle Dark Mode", icon: "moon-outline" },
-    { id: 6, name: "Help & Support", description: "Help or contact support", icon: "help-circle-outline",route: "Account/Support" },
-    { id: 7, name: "Legal", description: "Help, Privacy & Security, Legal", icon: "document-text-outline" ,route: "Account/Privacy"},
+    { id: 1, name: "Personal Information", description: "Edit your information", icon: "person-outline", route: "Account/personalinfo" },
+    { id: 3, name: "Settings", description: "Account, notification, location tracking", icon: "settings-outline", route: "Account/Settings" },
+    { id: 4, name: "My Referral", description: "Referrals, commission", icon: "people-outline", route: "Dashboard/Referral" },
+    { id: 5, name: "Dark Mode", description: "Toggle Dark Mode", icon: "moon-outline", action: toggleTheme }, // Toggle Theme
+    { id: 6, name: "Help & Support", description: "Help or contact support", icon: "help-circle-outline", route: "Account/Support" },
+    { id: 7, name: "Legal", description: "Help, Privacy & Security, Legal", icon: "document-text-outline", route: "Account/Privacy" },
+    { id: 8, name: "Logout", description: "Sign out of your account", icon: "log-out-outline", action: toggleTheme, color: "red" }, // Logout Button
   ];
 
   const handleLogout = async () => {
@@ -30,34 +28,32 @@ const ProfileScreen = () => {
     router.replace("/login");
   };
 
+  const handleMenuPress = (item) => {
+    if (item.action) {
+      if (item.name === "Dark Mode") {
+        item.action();
+      }else{
+         handleLogout();
+      }
+ 
+    } else if (item.route) {
+      router.push(item.route); // Navigate to route
+    }
+  };
+
   useEffect(() => {
-    const loadAndFetchProfile = async () => {
+    const loadProfile = async () => {
       try {
         const rawApiResponse = await AsyncStorage.getItem("rawApiResponse");
         if (rawApiResponse) {
-          const parsedResponse = JSON.parse(rawApiResponse);
-          setProfile(parsedResponse);
-          console.log("Profile loaded:", parsedResponse);
-        } else {
-          console.log("rawApiResponse not found in storage.");
+          setProfile(JSON.parse(rawApiResponse));
         }
       } catch (error) {
         console.error("Error loading profile:", error);
-        Alert.alert("Error", "An error occurred while fetching transactions");
       }
     };
-  
-    loadAndFetchProfile();
+    loadProfile();
   }, []);
-  
-
-  // if (loading) {
-  //   return (
-  //     <View style={styles.center}>
-  //       <ActivityIndicator size="large" color="#7734eb" />
-  //     </View>
-  //   );
-  // }
 
   if (!profile) {
     return (
@@ -72,75 +68,51 @@ const ProfileScreen = () => {
   }
 
   return (
-    <View style={{paddingTop:getStatusBarHeight(),backgroundColor:'#fff',flex:1}}>
-          <StatusBar
-    translucent
-    barStyle="dark-content"
-    backgroundColor="rgba(255, 255, 255, 0)" // Transparent white color
-  />
-  <View style={{flexDirection:'row',alignItems:'center',padding:10}}>
-
-<TouchableOpacity onPress={() => router.back()}>
-        <Ionicons name="arrow-back" size={24} color="#7734eb" />
-  </TouchableOpacity>
-  
-  <Text style={{fontSize:20,marginLeft:10,fontWeight:'bold'}}>Profile</Text>
-</View>
-      {/* Profile Header */}
-      <View style={styles.header}>
-      <Image source={require("../../../images/Profilepic.png")} resizeMethod="contain" style={{width:80,height:80,borderRadius:30}}/>
-        <Text style={styles.userName}>{profile.sFname} {profile.sLname}</Text>
+    <View style={[styles.container, theme === "dark" ? styles.darkContainer : styles.lightContainer]}>
+      <StatusBar translucent barStyle={theme === "dark" ? "light-content" : "dark-content"} backgroundColor="transparent" />
+      <View style={styles.headerContainer}>
+        <TouchableOpacity onPress={() => router.back()}>
+          <Ionicons name="arrow-back" size={24} color={theme === "dark" ? "#fff" : "#7734eb"} />
+        </TouchableOpacity>
+        <Text style={[styles.headerTitle, { color: theme === "dark" ? "#fff" : "#000" }]}>Profile</Text>
       </View>
 
-      {/* Menu Options */}
+      <View style={styles.header}>
+        <Image source={require("../../../images/Profilepic.png")} style={styles.profileImage} />
+        <Text style={[styles.userName, { color: theme === "dark" ? "#fff" : "#000" }]}>{profile.sFname} {profile.sLname}</Text>
+      </View>
+
       <ScrollView style={styles.menuContainer}>
         {menuItems.map((item) => (
-          <TouchableOpacity key={item.id} style={styles.menuItem}    onPress={() => {
-          
-              router.push(item.route);
-            
-          }}>
-            <Icon name={item.icon} type="ionicon" color="#333" size={24} />
+          <TouchableOpacity key={item.id} style={styles.menuItem} onPress={() => handleMenuPress(item)}>
+            <Icon name={item.icon} type="ionicon" color={theme === "dark" ? "#fff" : "#333"} size={24} />
             <View style={styles.menuTextContainer}>
-              <Text style={styles.menuTitle}>{item.name}</Text>
-              <Text style={styles.menuDescription}>{item.description}</Text>
+              <Text style={[styles.menuTitle, { color: theme === "dark" ? "#fff" : "#000" }]}>{item.name}</Text>
+              <Text style={[styles.menuDescription, { color: theme === "dark" ? "#aaa" : "#666" }]}>{item.description}</Text>
             </View>
           </TouchableOpacity>
         ))}
 
-        {/* Logout Button */}
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <Icon name="log-out-outline" type="ionicon" color="red" size={24} />
-          <Text style={styles.logoutText}>Logout</Text>
-        </TouchableOpacity>
       </ScrollView>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#FAF9F6" },
+  container: { flex: 1 },
+  lightContainer: { backgroundColor: "#fff" },
+  darkContainer: { backgroundColor: "#121212" },
+  headerContainer: { flexDirection: "row", alignItems: "center", padding: 10 },
+  headerTitle: { fontSize: 20, marginLeft: 10, fontWeight: "bold" },
   header: { alignItems: "center", paddingVertical: 30 },
-  profileImage: { width: 100, height: 100, borderRadius: 50 },
+  profileImage: { width: 80, height: 80, borderRadius: 30 },
   userName: { fontSize: 20, fontWeight: "bold", marginTop: 10 },
   menuContainer: { paddingHorizontal: 20 },
-  menuItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: "#E0E0E0",
-  },
+  menuItem: { flexDirection: "row", alignItems: "center", paddingVertical: 15, borderBottomWidth: 1, borderBottomColor: "#E0E0E0" },
   menuTextContainer: { marginLeft: 15 },
   menuTitle: { fontSize: 16, fontWeight: "bold" },
-  menuDescription: { fontSize: 12, color: "#666" },
-  logoutButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 15,
-    marginTop: 20,
-    justifyContent: "center",
-  },
+  menuDescription: { fontSize: 12 },
+  logoutButton: { flexDirection: "row", alignItems: "center", paddingVertical: 15, marginTop: 20, justifyContent: "center" },
   logoutText: { fontSize: 16, fontWeight: "bold", color: "red", marginLeft: 10 },
 });
 

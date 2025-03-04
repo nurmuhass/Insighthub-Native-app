@@ -1,15 +1,18 @@
 import { View, Text, StatusBar, TouchableOpacity } from 'react-native'
-import React, { useEffect, useState } from 'react'
+import React, { useContext,useEffect, useState } from 'react'
 import { getStatusBarHeight } from 'react-native-status-bar-height'
 import { Feather, Ionicons } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import * as Clipboard from "expo-clipboard";
 import { Platform, ToastAndroid, Alert } from "react-native";
+import { ThemeContext } from "../../../../ThemeContext"; 
+import { StyleSheet } from 'react-native'
 
 const Manual = () => {
 
      const router = useRouter();
+         const { theme, toggleTheme } = useContext(ThemeContext);
   const [index, setIndex] = useState(0);
   const [siteSettings, setSiteSettings] = useState([]);
      const accounts = [
@@ -69,8 +72,8 @@ const Manual = () => {
         }, []);
         
 
-  return (
-    <View style={{paddingTop:getStatusBarHeight(),backgroundColor:'#fff',flex:1,   padding: 20,}}>
+  return ( 
+    <View style={[styles.container, theme === "dark" ? styles.darkContainer : styles.lightContainer]} >
     <StatusBar
 translucent
 barStyle="dark-content"
@@ -88,7 +91,7 @@ backgroundColor="rgba(255, 255, 255, 0)" // Transparent white color
   <Text style={{    fontSize: 24,
     fontWeight: "bold",
     color: "#7734eb",
-    marginLeft: 10,}}>Manual Funding</Text>
+    marginLeft: 10,color: theme === "dark" ? "#fff" : "#7734eb" }}>Manual Funding</Text>
 </View>
 
 <View style={{borderColor:'#7734eb',borderWidth:1,padding:30,borderRadius:10}}>
@@ -116,3 +119,11 @@ backgroundColor="rgba(255, 255, 255, 0)" // Transparent white color
 }
 
 export default Manual
+const styles = StyleSheet.create({
+  container: {
+    paddingTop:getStatusBarHeight(),backgroundColor:'#fff',flex:1,   padding: 20
+  },
+  lightContainer: { backgroundColor: "#fff" },
+  darkContainer: { backgroundColor: "#121212" },
+
+})    

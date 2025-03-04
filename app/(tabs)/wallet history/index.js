@@ -1,7 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, StatusBar } from 'react-native';
 import { getStatusBarHeight } from 'react-native-status-bar-height';
+import { ThemeContext } from "../../../ThemeContext"; 
 
 const WalletHistory = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -10,6 +11,8 @@ const WalletHistory = () => {
     const [searchText, setSearchText] = useState("");
     const [selectedService, setSelectedService] = useState("");
     const [modalVisible, setModalVisible] = useState(false);
+      const { theme, toggleTheme } = useContext(ThemeContext);
+
   const dummytransactions = [
     {
       date: '2025-01-27 – 05:23 AM',
@@ -137,13 +140,10 @@ const WalletHistory = () => {
   }, []);
 
   return (
-    <View style={{paddingTop:getStatusBarHeight(),backgroundColor:'#fff',flex:1}}>
-             <StatusBar
-       translucent
-       barStyle="dark-content"
-       backgroundColor="rgba(255, 255, 255, 0)" // Transparent white color
-     />
-     <Text style={{fontSize:20,marginLeft:10,fontWeight:'bold',alignSelf:'center',padding:10}}>Wallet History</Text>
+    <View style={[styles.container, theme === "dark" ? styles.darkContainer : styles.lightContainer]}>
+ <StatusBar translucent barStyle={theme === "dark" ? "light-content" 
+   : "dark-content"} backgroundColor="transparent" />
+     <Text style={{fontSize:20,marginLeft:10,fontWeight:'bold',alignSelf:'center',padding:10,color: theme === "dark" ? "#fff" : "#000"}}>Wallet History</Text>
       <TextInput
         style={styles.searchBar}
         placeholder="Search transactions..."
@@ -152,17 +152,17 @@ const WalletHistory = () => {
       />
       <ScrollView>
         {filteredTransactions.map((transaction, index) => (
-          <View key={index} style={styles.transaction}>
-            <Text style={styles.date}>{transaction.date}</Text>
-            <Text style={styles.description}>{transaction.servicedesc}</Text>
-            <View style={styles.balanceContainer}>
-              <Text style={styles.balanceLabel}>Prev Balance:</Text>
-              <Text style={styles.balanceValue}> ₦{transaction.oldbal}</Text>
+          <View key={index} style={[styles.transaction, theme === "dark" ? styles.darkContainer : styles.lightContainer]}>
+            <Text style={[styles.date, { color: theme === "dark" ? "#fff" : "#000" }]}>{transaction.date}</Text>
+            <Text style={[styles.description, { color: theme === "dark" ? "#fff" : "#000" }]}>{transaction.servicedesc}</Text>
+            <View style={[styles.balanceContainer, { color: theme === "dark" ? "#fff" : "#000" }]}>
+              <Text style={[styles.balanceLabel, { color: theme === "dark" ? "#fff" : "#000" }]}>Prev Balance:</Text>
+              <Text style={[styles.balanceValue, { color: theme === "dark" ? "#fff" : "#000" }]}> ₦{transaction.oldbal}</Text>
             </View>
             <Text style={styles.amount}> ₦{transaction.amount}</Text>
-            <View style={styles.balanceContainer}>
-              <Text style={styles.balanceLabel}>New Balance:</Text>
-              <Text style={styles.balanceValue}> ₦{transaction.newbal}</Text>
+            <View style={[styles.balanceContainer, { color: theme === "dark" ? "#fff" : "#000" }]}>
+              <Text style={[styles.balanceLabel, { color: theme === "dark" ? "#fff" : "#000" }]}>New Balance:</Text>
+              <Text style={[styles.balanceValue, { color: theme === "dark" ? "#fff" : "#000" }]}> ₦{transaction.newbal}</Text>
             </View>
           </View>
         ))}
@@ -173,10 +173,10 @@ const WalletHistory = () => {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    padding: 16,
-    backgroundColor: '#f5f5f5',
+    paddingTop:getStatusBarHeight(),flex:1
   },
+  lightContainer: { backgroundColor: "#fff" },
+  darkContainer: { backgroundColor: "#121212" },
   searchBar: {
     height: 40,
     borderColor: '#ccc',
@@ -189,7 +189,7 @@ const styles = StyleSheet.create({
     marginHorizontal: '3%',
   },
   transaction: {
-    backgroundColor: '#fff',
+    
     padding: 16,
     borderRadius: 8,
     marginBottom: 16,

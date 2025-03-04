@@ -1,18 +1,20 @@
 import { AntDesign, Ionicons, MaterialIcons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
-import { Linking, StatusBar } from "react-native";
+import {useRouter } from "expo-router";
+import React, {  useContext,useEffect, useState } from "react";
+import { Linking, StatusBar, StyleSheet } from "react-native";
 import { View, Text, TextInput, TouchableOpacity, Image, Alert } from "react-native";
 import { getStatusBarHeight } from "react-native-status-bar-height";
 import MovingText from "../../../components/Movingtext";
 import { ActivityIndicator } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { ThemeContext } from "../../../ThemeContext"; 
 
 const AirtimeSwap = () => {
   const [selectedNetwork, setSelectedNetwork] = useState(null);
   const [phoneNumber, setPhoneNumber] = useState("");
-  const [walletBalance, setWalletBalance] = useState(1197.8);
+  const [walletBalance, setWalletBalance] = useState(8);
     const [selectedAmount, setSelectedAmount] = useState("");
+      const { theme, toggleTheme } = useContext(ThemeContext);
     const router = useRouter();
   const networks = [
     { id: "mtn", name: "MTN", logo: require("../../../images/mtn.png") },
@@ -59,7 +61,7 @@ const AirtimeSwap = () => {
     );
   }
   return (
-       <View style={{paddingTop:getStatusBarHeight(),backgroundColor:'#fff',flex:1,}}>
+       <View style={[styles.container, theme === "dark" ? styles.darkContainer : styles.lightContainer]}>
            <StatusBar
      translucent
      barStyle="dark-content"
@@ -70,18 +72,18 @@ const AirtimeSwap = () => {
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: 16,
-    backgroundColor: '#fff',
+    backgroundColor:theme === "dark" ? "#000" : "#fff",
     borderBottomWidth: 1,
     borderBottomColor: '#eee',}}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <TouchableOpacity onPress={() => router.back()} style={{   }}>
-              <Ionicons name="arrow-back" size={24} color="#000" />
+              <Ionicons name="arrow-back" size={24} color={theme === "dark" ? "#fff" : "#000"}/>
             </TouchableOpacity>
          
           </View>
 
           <Text style={{   fontSize: 20,
-    fontWeight: 'bold'}}>Airtime Swap</Text>
+    fontWeight: 'bold',color: theme === "dark" ? "#fff" : "#000"}}>Airtime Swap</Text>
 
           {/* Share Button */}
           <TouchableOpacity onPress={{}} style={{    padding: 7,
@@ -101,7 +103,7 @@ const AirtimeSwap = () => {
       <View style={{ flexDirection: "row", justifyContent: "space-between", padding: 10, backgroundColor: "#f1f1f1", borderRadius: 5, marginBottom: 20,width:'96%',alignItems:'center' ,alignSelf:'center',marginVertical:8}}>
         <View style={{ flexDirection: "row", alignItems: "center" }}>
         <AntDesign name="wallet" size={24} color="black" />
-        <Text style={{ fontWeight: "bold" ,marginLeft:5}}>Wallet Balance</Text>
+        <Text style={{ fontWeight: "bold" ,marginLeft:5,color: theme === "dark" ? "#fff" : "#000"}}>Wallet Balance</Text>
         </View>
         <Text style={{ color: "green", fontWeight: "bold" }}>N{profile.sWallet}</Text>
       </View>
@@ -112,7 +114,7 @@ const AirtimeSwap = () => {
 
 
       {/* Select Network */}
-      <Text style={{ marginBottom: 10 }}>Select Network</Text>
+      <Text style={{ marginBottom: 10,color: theme === "dark" ? "#fff" : "#000" }}>Select Network</Text>
       <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
         {networks.map((network) => (
           <TouchableOpacity key={network.id} onPress={() => setSelectedNetwork(network)}>
@@ -124,22 +126,23 @@ const AirtimeSwap = () => {
       {/* Phone Number Input */}
 
 
-      <Text style={{ marginTop: 20 }}>Phone Number</Text>
+      <Text style={{ marginTop: 20,color: theme === "dark" ? "#fff" : "#000" }}>Phone Number</Text>
       <View style={{  alignItems: "center" }}>
       <TextInput
-        style={{ borderWidth: 1, borderColor: "#ccc", padding: 10, borderRadius: 5, marginTop: 5 ,width:'100%'}}
+        style={{ borderWidth: 1, borderColor: "#ccc", padding: 10, borderRadius: 5, marginTop: 5 ,
+          width:'100%',color: theme === "dark" ? "#fff" : "#000"}}
         placeholder="Enter Phone Number"
         keyboardType="numeric"
         value={phoneNumber}
         onChangeText={setPhoneNumber}
       />
-      <MaterialIcons name="contacts" size={24} color="black"  style={{position:'absolute',top:10,right:5}}/>
+      <MaterialIcons name="contacts" size={24} color={theme === "dark" ? "#fff" : "#000"}  style={{position:'absolute',top:10,right:5}}/>
       </View>
   
 
      {/* Custom Amount Input */}
         <TextInput
-          style={{ borderWidth: 1, borderColor: "#ccc", padding: 10, borderRadius: 5, marginTop: 10, }}
+          style={{ borderWidth: 1, borderColor: "#ccc", padding: 10, borderRadius: 5, marginTop: 10,color: theme === "dark" ? "#fff" : "#000" }}
           placeholder="Enter Amount"
           keyboardType="numeric"
           value={selectedAmount}
@@ -158,5 +161,11 @@ const AirtimeSwap = () => {
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: { flex: 1, padding: 20,paddingTop: getStatusBarHeight(), },
+  lightContainer: { backgroundColor: "#fff" },
+  darkContainer: { backgroundColor: "#121212" },
+});
 
 export default AirtimeSwap;

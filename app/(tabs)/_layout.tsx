@@ -4,16 +4,19 @@ import AntDesign from '@expo/vector-icons/AntDesign';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { StatusBar } from "expo-status-bar";
+import { useContext } from "react";
+import { ThemeContext } from "../../ThemeContext"; 
+
 
 const TabsLayout = () => {
-
+  const { theme, toggleTheme } = useContext(ThemeContext);
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor:'#7734eb',
         tabBarLabelStyle:{fontWeight:'bold',textTransform:'capitalize'},
-        // tabBarIconStyle:{backgroundColor:'#F93C65',color:'#F93C65'},
+        tabBarStyle:{backgroundColor:theme === "dark" ? "#000" : "#fff"},
      
       }}
     >

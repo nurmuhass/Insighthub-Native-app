@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useContext,useEffect, useState } from 'react'
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, StatusBar, Image } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons'; // For the back icon
@@ -6,10 +6,12 @@ import { getStatusBarHeight } from 'react-native-status-bar-height';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import logo from '../../../assets/logo.png';
+import { ThemeContext } from "../../../ThemeContext"; 
 
 export default function TransactionDetailScreen() {
   const { transaction } = useLocalSearchParams();
   const transactionData = JSON.parse(transaction);
+        const { theme, toggleTheme } = useContext(ThemeContext);
   const router = useRouter();
  const logoURI = Image.resolveAssetSource(logo).uri;
   // Function to generate PDF and share it
@@ -83,20 +85,21 @@ export default function TransactionDetailScreen() {
   };
 
   return (
-    <View style={{ paddingTop: getStatusBarHeight(), backgroundColor: '#fff', flex: 1 }}>
+    <View style={[styles.container, theme === "dark" ? styles.darkContainer : styles.lightContainer]}>
       <StatusBar
         translucent
         barStyle="dark-content"
         backgroundColor="rgba(255, 255, 255, 0)"
       />
-      <ScrollView style={styles.container}>
+      <ScrollView style={{flex: 1,
+    backgroundColor:theme === "dark" ? styles.darkContainer : styles.lightContainer}}>
         {/* Header with Back Button */}
         <View style={styles.header}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-              <Ionicons name="arrow-back" size={24} color="#000" />
+              <Ionicons name="arrow-back" size={24} color={theme === "dark" ? "#fff" : "#000"}/>
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>Transaction Details</Text>
+            <Text style={[styles.headerTitle, { color: theme === "dark" ? "#fff" : "#7734eb" }]}>Transaction Details</Text>
           </View>
 
           {/* Share Button */}
@@ -122,32 +125,32 @@ export default function TransactionDetailScreen() {
    )}
             <Image source={require("../../../images/logo.png")} style={styles.providerLogo} />
           </View>
-          <Text style={styles.summaryText}>
+          <Text style={[styles.summaryText, { color: theme === "dark" ? "#fff" : "#7734eb" }]}>
           {transactionData.servicedesc}{"\n"}
           </Text>
         </View>
 
         {/* Transaction Details */}
         <View style={styles.detailsContainer}>
-          <Text style={styles.sectionTitle}>Transaction Information</Text>
+          <Text style={[styles.sectionTitle, { color: theme === "dark" ? "#fff" : "#7734eb" }]}>Transaction Information</Text>
           <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Transaction ID:</Text>
-            <Text style={styles.detailValue}>{transactionData.transref}</Text>
+            <Text style={[styles.detailLabel, { color: theme === "dark" ? "#fff" : "#7734eb" }]}>Transaction ID:</Text>
+            <Text style={[styles.detailValue, { color: theme === "dark" ? "#fff" : "#7734eb" }]}>{transactionData.transref}</Text>
           </View>
           <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Status:</Text>
+            <Text style={[styles.detailLabel, { color: theme === "dark" ? "#fff" : "#7734eb" }]}>Status:</Text>
             <Text style={[styles.detailValue, { color: transactionData.status === '0' ? 'green' : 'red' }]}>
               {transactionData.status === '0' ? 'Success' : 'Failed'}
             </Text>
           </View>
           <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Phone:</Text>
-            <Text style={styles.detailValue}>{transactionData.phone}</Text>
+            <Text style={[styles.detailLabel, { color: theme === "dark" ? "#fff" : "#7734eb" }]}>Phone:</Text>
+            <Text style={[styles.detailValue, { color: theme === "dark" ? "#fff" : "#7734eb" }]}>{transactionData.phone}</Text>
           </View>
           <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Provider:</Text>
+            <Text style={[styles.detailLabel, { color: theme === "dark" ? "#fff" : "#7734eb" }]}>Provider:</Text>
          
-             <Text style={styles.detailValue}> { transactionData.servicedesc && transactionData.servicedesc.toUpperCase().includes('AIRTEL') && (
+             <Text style={[styles.detailValue, { color: theme === "dark" ? "#fff" : "#7734eb" }]}> { transactionData.servicedesc && transactionData.servicedesc.toUpperCase().includes('AIRTEL') && (
             'Airtel'
             )}
             { transactionData.servicedesc && transactionData.servicedesc.toUpperCase().includes('MTN') && (
@@ -164,16 +167,16 @@ export default function TransactionDetailScreen() {
             )}</Text>
           </View>
           <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Description:</Text>
-            <Text style={{width:'70%',marginLeft:25,marginRight:5}} numberOfLines={4}>{transactionData.servicedesc}</Text>
+            <Text style={[styles.detailLabel, { color: theme === "dark" ? "#fff" : "#7734eb" }]}>Description:</Text>
+            <Text style={{width:'70%',marginLeft:25,marginRight:5,color: theme === "dark" ? "#fff" : "#7734eb" }} numberOfLines={4}>{transactionData.servicedesc}</Text>
           </View>
           <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Amount:</Text>
-            <Text style={styles.detailValue}>₦ {transactionData.amount}</Text>
+            <Text style={[styles.detailLabel, { color: theme === "dark" ? "#fff" : "#7734eb" }]}>Amount:</Text>
+            <Text style={[styles.detailValue, { color: theme === "dark" ? "#fff" : "#7734eb" }]}>₦ {transactionData.amount}</Text>
           </View>
           <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Date:</Text>
-            <Text style={styles.detailValue}>{transactionData.date}</Text>
+            <Text style={[styles.detailLabel, { color: theme === "dark" ? "#fff" : "#7734eb" }]}>Date:</Text>
+            <Text style={[styles.detailValue, { color: theme === "dark" ? "#fff" : "#7734eb" }]}>{transactionData.date}</Text>
           </View>
         </View>
       </ScrollView>
@@ -183,15 +186,16 @@ export default function TransactionDetailScreen() {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
+
+    paddingTop: getStatusBarHeight(), backgroundColor: '#fff', flex: 1 
   },
+  lightContainer: { backgroundColor: "#fff" },
+  darkContainer: { backgroundColor: "#121212" },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: 16,
-    backgroundColor: '#fff',
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
   },
@@ -217,7 +221,7 @@ const styles = StyleSheet.create({
   },
   summaryContainer: {
     padding: 16,
-    backgroundColor: '#fff',
+   
     marginBottom: 16,
     marginTop: 6,
     borderWidth: 1,
@@ -245,7 +249,7 @@ const styles = StyleSheet.create({
   },
   detailsContainer: {
     padding: 16,
-    backgroundColor: '#fff',
+   
   },
   sectionTitle: {
     fontSize: 18,

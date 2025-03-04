@@ -1,9 +1,12 @@
 // ReAuthModalWrapper.js
-import React from 'react';
+import React, { useContext } from 'react';
 import { Modal, StyleSheet, View } from 'react-native';
 import ReAuthModal from './ReAuthModal'; // Adjust path as needed
+import { ThemeContext } from "../ThemeContext"; 
+import { getStatusBarHeight } from "react-native-status-bar-height";
 
 const ReAuthModalWrapper = ({ visible, onSuccess, onCancel,combinedData }) => {
+    const { theme, toggleTheme } = useContext(ThemeContext);
   return (
     <Modal
       animationType="slide"
@@ -11,7 +14,7 @@ const ReAuthModalWrapper = ({ visible, onSuccess, onCancel,combinedData }) => {
       visible={visible}
       onRequestClose={onCancel} // use onCancel here
     >
-      <View style={styles.modalContainer}>
+      <View style={[styles.container, theme === "dark" ? styles.darkContainer : styles.lightContainer]}>
         <ReAuthModal onUnlock={onSuccess} onCancel={onCancel} combinedData={combinedData}/>
       </View>
     </Modal>
@@ -19,10 +22,13 @@ const ReAuthModalWrapper = ({ visible, onSuccess, onCancel,combinedData }) => {
 };
 
 const styles = StyleSheet.create({
-  modalContainer: {
+  container: {
     flex: 1,
-    backgroundColor: '#fff',
+   backgroundColor: "red",
+    paddingTop: getStatusBarHeight(),
   },
+  lightContainer: { backgroundColor: "#fff" },
+  darkContainer: { backgroundColor: "#121212" },
 });
 
 export default ReAuthModalWrapper;

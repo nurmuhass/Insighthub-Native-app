@@ -1,5 +1,5 @@
 import { View, Text, Image, TouchableOpacity,ToastAndroid, Platform, Alert, FlatList, StyleSheet, Modal, ActivityIndicator } from 'react-native'
-import React, { useEffect, useState } from 'react'
+import React, { useContext,useEffect, useState } from 'react'
 import { StatusBar } from 'expo-status-bar'
 import { getStatusBarHeight } from "react-native-status-bar-height";
 import AntDesign from '@expo/vector-icons/AntDesign';
@@ -10,6 +10,7 @@ import Feather from '@expo/vector-icons/Feather';
 import * as Clipboard from "expo-clipboard";
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { ThemeContext } from "../../../ThemeContext"; 
 
 const API_URL = "https://insighthub.com.ng/api/user/fundWallet.php";
 
@@ -20,6 +21,7 @@ const index = () => {
     const [walletData, setWalletData] = useState(null);
   const router = useRouter(); // Initialize the router
     const [userId, setUserId] = useState("1");
+      const { theme, toggleTheme } = useContext(ThemeContext);
   // Define two sets of data
   
   useEffect(() => {
@@ -183,23 +185,23 @@ const index = () => {
 
 
   const services = [
-    { id: 1, name: "Data", icon: <FontAwesome5 name="globe" size={30} color="#7734eb" />, route: "Dashboard/BuyData" },
-    { id: 2, name: "Airtime", icon: <MaterialIcons name="stay-primary-portrait" size={30} color="#7734eb" />, route: "Dashboard/BuyAirtime" },
-    { id: 3, name: "Electricity", icon: <MaterialIcons name="lightbulb-outline" size={30} color="#7734eb" />, route: "Dashboard/Electricity" },
-    { id: 4, name: "Cable Tv", icon: <MaterialIcons name="live-tv" size={30} color="#7734eb" />, route: "Dashboard/PayCable" },
-    { id: 5, name: "Airtime Swap", icon: <FontAwesome5 name="exchange-alt" size={30} color="#7734eb" />, route: "Dashboard/AirtimeSwap" },
-    { id: 6, name: "More Services", icon: <Entypo name="dots-three-horizontal" size={30} color="#7734eb" />, route: null },
+    { id: 1, name: "Data", icon: <FontAwesome5 name="globe" size={30} color='#7734eb'  />, route: "Dashboard/BuyData" },
+    { id: 2, name: "Airtime", icon: <MaterialIcons name="stay-primary-portrait" size={30} color='#7734eb' />, route: "Dashboard/BuyAirtime" },
+    { id: 3, name: "Electricity", icon: <MaterialIcons name="lightbulb-outline" size={30} color='#7734eb' />, route: "Dashboard/Electricity" },
+    { id: 4, name: "Cable Tv", icon: <MaterialIcons name="live-tv" size={30}color='#7734eb'  />, route: "Dashboard/PayCable" },
+    { id: 5, name: "Airtime Swap", icon: <FontAwesome5 name="exchange-alt" size={30} color='#7734eb'  />, route: "Dashboard/AirtimeSwap" },
+    { id: 6, name: "More Services", icon: <Entypo name="dots-three-horizontal" size={30}color='#7734eb'  />, route: null },
   ];
   
 const moreServices = [
   { id: 1, name: "Buy Data", icon: <FontAwesome5 name="globe" size={30} color="#7734eb" /> , route: "Dashboard/BuyData"},
-  { id: 2, name: "Airtime", icon: <MaterialIcons name="stay-primary-portrait" size={30} color="#7734eb" />, route: "Dashboard/BuyAirtime" },
-  { id: 3, name: "Electricity", icon: <MaterialIcons name="lightbulb-outline" size={30} color="#7734eb" />, route: "Dashboard/Electricity" },
-  { id: 4, name: "Cable Tv", icon: <MaterialIcons name="live-tv" size={30} color="#7734eb" />, route: "Dashboard/PayCable"},
-  { id: 5, name: "Edu Pins", icon: <FontAwesome5 name="book-open" size={30} color="#7734eb" /> , route: "Dashboard/EduPin"},
-  { id: 6, name: "Bulk SMS", icon: <FontAwesome5 name="sms" size={30} color="#7734eb" /> },
-  { id: 7, name: "Recharge Pin", icon: <FontAwesome5 name="credit-card" size={30} color="#7734eb" /> ,route: "Dashboard/RechargeCard"},
-  { id: 8, name: "Airtime Swap", icon: <FontAwesome5 name="exchange-alt" size={30} color="#7734eb" /> , route: "Dashboard/AirtimeSwap" },
+  { id: 2, name: "Airtime", icon: <MaterialIcons name="stay-primary-portrait" size={30} color='#7734eb' />, route: "Dashboard/BuyAirtime" },
+  { id: 3, name: "Electricity", icon: <MaterialIcons name="lightbulb-outline" size={30} color='#7734eb' />, route: "Dashboard/Electricity" },
+  { id: 4, name: "Cable Tv", icon: <MaterialIcons name="live-tv" size={30}color='#7734eb' />, route: "Dashboard/PayCable"},
+  { id: 5, name: "Edu Pins", icon: <FontAwesome5 name="book-open" size={30} color='#7734eb'/> , route: "Dashboard/EduPin"},
+  { id: 6, name: "Bulk SMS", icon: <FontAwesome5 name="sms" size={30} color='#7734eb' /> },
+  { id: 7, name: "Recharge Pin", icon: <FontAwesome5 name="credit-card" size={30} color='#7734eb' /> ,route: "Dashboard/RechargeCard"},
+  { id: 8, name: "Airtime Swap", icon: <FontAwesome5 name="exchange-alt" size={30} color='#7734eb' /> , route: "Dashboard/AirtimeSwap" },
 ];
   const [modalVisible, setModalVisible] = useState(false);
 
@@ -214,19 +216,16 @@ const moreServices = [
     }
 
   return (
-    <View style={{paddingTop:getStatusBarHeight(),backgroundColor:'#fff',flex:1}}>
-        <StatusBar
-  translucent
-  barStyle="dark-content"
-  backgroundColor="rgba(255, 255, 255, 0)" // Transparent white color
-/>
+  
+      <View style={[styles.container, theme === "dark" ? styles.darkContainer : styles.lightContainer]}>
+  <StatusBar translucent barStyle={theme === "dark" ? "light-content" : "dark-content"} backgroundColor="transparent" />
     <View style={{justifyContent:"space-between",flexDirection:'row',alignItems:'center'}}>
       <View style={{flexDirection:'row',alignItems:'center'}}>
       <Image source={require("../../../images/Profilepic.png")} resizeMethod="contain" style={{width:40,height:40,marginRight:10,marginLeft:8,borderRadius:10}}/>
 <View>
-  <Text>{profile !=null ? profile.sFname + profile.sLname : '' }</Text>
+  <Text  style={ { color: theme === "dark" ? "#fff" : "#000" }}>{profile !=null ? profile.sFname + profile.sLname : '' }</Text>
   <View style={{flexDirection:'row',alignItems:'center'}}>
-  <Text>Welcome Back</Text>
+  <Text style={ { color: theme === "dark" ? "#fff" : "#000" }}>Welcome Back</Text>
   <Image source={require("../../../images/clapp.jpg")} resizeMethod="contain" style={{width:28,height:20,marginLeft:5}}/>
   </View>
   
@@ -234,7 +233,7 @@ const moreServices = [
       </View>
   <View>
   <TouchableOpacity onPress={""}  style={{justifyContent:'flex-end',marginRight:'4%'}}>
-    <Ionicons name="notifications" size={24} color="black" />
+    <Ionicons name="notifications" size={24} color={theme === "dark" ? "#fff" : "#7734eb"}  />
    { 1 !=0 ?  (
     <Badge
             status="primary"
@@ -286,7 +285,7 @@ const moreServices = [
       <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
         <Text style={{ color: "#fff", fontWeight: "bold" }}>{walletData[index].charges}</Text>
         <TouchableOpacity onPress={toggleAccount}>
-          <Ionicons name="chevron-forward" size={24} color="white" />
+          <Ionicons name="chevron-forward" size={24} color={theme === "dark" ? "#fff" : "#7734eb"}  />
         </TouchableOpacity>
       </View>
     </View>
@@ -294,7 +293,7 @@ const moreServices = [
 </View>
 
 <View style={{marginTop:8,marginLeft:8}}>
-      <Text style={{ fontSize: 20 }}>Your Referral Code</Text>
+      <Text style={{ fontSize: 20,color: theme === "dark" ? "#fff" : "#000" }}>Your Referral Code</Text>
 
       <View style={{ flexDirection: "row", alignItems: "center", marginTop: 10,justifyContent:'space-between',
       marginRight:10,marginTop:12,backgroundColor:"#f0f0f0",padding:10,borderRadius:10
@@ -312,21 +311,21 @@ const moreServices = [
 width:'48%',
   height:50,justifyContent:'center',
   flexDirection:'row',alignItems:'center'}} onPress={() => {router.push("Dashboard/FundWallet");}}>
-<Ionicons name="add-circle-outline" size={24} color="#fff" />
+<Ionicons name="add-circle-outline" size={24} color={theme === "dark" ? "#fff" : "#7734eb"} />
 <Text style={{alignSelf:'center',color:'#fff'}}>Fund Wallet</Text>
 </TouchableOpacity>
 
 <TouchableOpacity style={{backgroundColor:"#7734eb",padding:10,borderRadius:10,width:'48%',height:50,
   justifyContent:'center',flexDirection:'row',alignItems:'center'}} onPress={() => {router.push("Dashboard/Referral");}}>
-<FontAwesome name="users" size={18} color="#fff" />
+<FontAwesome name="users" size={18} color={theme === "dark" ? "#fff" : "#7734eb"}  />
 <Text style={{alignSelf:'center',color:'#fff',marginLeft:3}}>Referral</Text>
 </TouchableOpacity>
 
 
 </View>
 
- <View style={styles.container}>
-      <Text style={styles.headerText}>Our Services</Text>
+ <View style={{padding: 15, borderRadius: 15 ,marginTop:20}}>
+      <Text style={[styles.headerText, { color: theme === "dark" ? "#fff" : "#7734eb" }]}>Our Services</Text>
 
       <FlatList
       data={services}
@@ -344,7 +343,7 @@ width:'48%',
           }}
         >
           {item.icon}
-          <Text style={styles.serviceText}>{item.name}</Text>
+          <Text style={[styles.serviceText, { color: theme === "dark" ? "#fff" : "#000" }]}>{item.name}</Text>
         </TouchableOpacity>
       )}
     />
@@ -352,8 +351,8 @@ width:'48%',
       {/* Modal for More Services */}
       <Modal animationType="slide" transparent={true} visible={modalVisible}>
         <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalHeader}>What would you like to do today?</Text>
+          <View style={[styles.modalContent, { backgroundColor: theme === "dark" ? "#000" : "#fff" }]}>
+            <Text style={[styles.modalHeader, { color: theme === "dark" ? "#fff" : "#000" }]}>What would you like to do today?</Text>
 
             <FlatList
               data={moreServices}
@@ -364,7 +363,7 @@ width:'48%',
                     router.push(item.route);
                 }}>
                   {item.icon}
-                  <Text style={styles.modalText}>{item.name}</Text>
+                  <Text style={[styles.modalText, { color: theme === "dark" ? "#7734eb" : "#000" }]}>{item.name}</Text>
                 </TouchableOpacity>
               )}
             />
@@ -383,11 +382,13 @@ width:'48%',
 
 
 const styles = StyleSheet.create({
-  container: { padding: 15, backgroundColor: "#f5f5f5", borderRadius: 15 ,marginTop:20},
+  container: { paddingTop:getStatusBarHeight(),backgroundColor:'#fff',flex:1},
+  lightContainer: { backgroundColor: "#fff" },
+  darkContainer: { backgroundColor: "#121212" },
   headerText: { fontSize: 20, fontWeight: "bold", color: "#7734eb", marginBottom: 15 },
   serviceButton: { alignItems: "center", flex: 1, marginVertical: 15 },
   serviceText: { fontSize: 14, fontWeight: "bold", marginTop: 5, color: "black" },
-  modalContainer: { flex: 1, justifyContent: "flex-end", alignItems: "center", backgroundColor: "rgba(0,0,0,0.5)" },
+  modalContainer: { flex: 1, justifyContent: "flex-end", alignItems: "center",},
   modalContent: { backgroundColor: "white", padding: 20,borderTopRightRadius:25,borderTopLeftRadius:25, width: "100%", alignItems:'bottom' },
   modalHeader: { fontSize: 18, fontWeight: "bold", color: "#555", marginBottom: 15 },
   modalButton: { backgroundColor: "#f0f0f0", padding: 15, borderRadius: 10, margin: 4, alignItems: "center", width: "48%" },

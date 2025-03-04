@@ -1,6 +1,6 @@
 // ConfirmElectricity.js
 
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import {
   View,
   Text,
@@ -13,12 +13,13 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import ReAuthModalWrapper from '../../../components/ReAuthModalWrapper';
+import { ThemeContext } from "../../../ThemeContext"; 
 
 const ConfirmElectricity = () => {
   const router = useRouter();
   const params = useLocalSearchParams();
   const [reauthVisible, setReauthVisible] = useState(false);
-
+ const { theme, toggleTheme } = useContext(ThemeContext);
   // Log route parameters for debugging
   console.log("Route parameters:", params);
 
@@ -122,42 +123,42 @@ const ConfirmElectricity = () => {
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <Text style={styles.header}>Confirm Electricity Purchase</Text>
+    <ScrollView style={[styles.container, theme === "dark" ? styles.darkContainer : styles.lightContainer]}>
+      <Text style={[styles.header, { color: theme === "dark" ? "#fff" : "#000" }]}>Confirm Electricity Purchase</Text>
       
       <View style={styles.detailRow}>
-         <Text style={styles.label}>Provider:</Text>
-            <Text style={styles.value}>{data.providerName || data.provider || "N/A"}</Text>
+         <Text style={[styles.label, { color: theme === "dark" ? "#fff" : "#000" }]}>Provider:</Text>
+            <Text style={[styles.value, { color: theme === "dark" ? "#fff" : "#000" }]}>{data.providerName || data.provider || "N/A"}</Text>
       </View>
       
       <View style={styles.detailRow}>
-        <Text style={styles.label}>Meter Type:</Text>
-        <Text style={styles.value}>{metertype || "N/A"}</Text>
+        <Text style={[styles.label, { color: theme === "dark" ? "#fff" : "#000" }]}>Meter Type:</Text>
+        <Text style={[styles.value, { color: theme === "dark" ? "#fff" : "#000" }]}>{metertype || "N/A"}</Text>
       </View>
       
       <View style={styles.detailRow}>
-        <Text style={styles.label}>Customer Name:</Text>
-        <Text style={styles.value}>{customerName}</Text>
+        <Text style={[styles.label, { color: theme === "dark" ? "#fff" : "#000" }]}>Customer Name:</Text>
+        <Text style={[styles.value, { color: theme === "dark" ? "#fff" : "#000" }]}>{customerName}</Text>
       </View>
       
       <View style={styles.detailRow}>
-        <Text style={styles.label}>Phone Number:</Text>
-        <Text style={styles.value}>{phone || "N/A"}</Text>
+        <Text style={[styles.label, { color: theme === "dark" ? "#fff" : "#000" }]}>Phone Number:</Text>
+        <Text style={[styles.value, { color: theme === "dark" ? "#fff" : "#000" }]}>{phone || "N/A"}</Text>
       </View>
       
       <View style={styles.detailRow}>
-        <Text style={styles.label}>Meter Number:</Text>
-        <Text style={styles.value}>{meternumber || "N/A"}</Text>
+        <Text style={[styles.label, { color: theme === "dark" ? "#fff" : "#000" }]}>Meter Number:</Text>
+        <Text style={[styles.value, { color: theme === "dark" ? "#fff" : "#000" }]}>{meternumber || "N/A"}</Text>
       </View>
       
       <View style={styles.detailRow}>
-        <Text style={styles.label}>Amount:</Text>
-        <Text style={styles.value}>N{amount || "N/A"}</Text>
+        <Text style={[styles.label, { color: theme === "dark" ? "#fff" : "#000" }]}>Amount:</Text>
+        <Text style={[styles.value, { color: theme === "dark" ? "#fff" : "#000" }]}>N{amount || "N/A"}</Text>
       </View>
       
       <View style={styles.detailRow}>
-        <Text style={styles.label}>Amount To Pay:</Text>
-        <Text style={styles.value}>{amounttopay || "N/A"}</Text>
+        <Text style={[styles.label, { color: theme === "dark" ? "#fff" : "#000" }]}>Amount To Pay:</Text>
+        <Text style={[styles.value, { color: theme === "dark" ? "#fff" : "#000" }]}>{amounttopay || "N/A"}</Text>
       </View>
       
       <Text style={styles.note}>
@@ -184,6 +185,8 @@ const ConfirmElectricity = () => {
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 20, backgroundColor: "#fff" },
   header: { fontSize: 24, fontWeight: "bold", textAlign: "center", marginBottom: 20, color: "#7734eb" },
+  lightContainer: { backgroundColor: "#fff" },
+  darkContainer: { backgroundColor: "#121212" },
   detailRow: { flexDirection: "row", marginBottom: 10 },
   label: { fontWeight: "bold", width: 150, color: "#333" },
   value: { flex: 1, color: "#555" },

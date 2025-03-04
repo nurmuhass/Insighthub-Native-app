@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { 
   View, 
   Text, 
@@ -14,6 +14,7 @@ import {
 import { getStatusBarHeight } from 'react-native-status-bar-height';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { ThemeContext } from "../../../ThemeContext"; 
 
 const TransactionsScreen = () => {
   const router = useRouter();
@@ -24,7 +25,7 @@ const TransactionsScreen = () => {
   const [searchText, setSearchText] = useState("");
   const [selectedService, setSelectedService] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
-
+  const { theme, toggleTheme } = useContext(ThemeContext);
 
   const DummytransactionsData = {
     "Buy Data": [
@@ -121,15 +122,16 @@ const TransactionsScreen = () => {
   : Object.keys(DummytransactionsData);
 
   return (
-    <View style={{ paddingTop: getStatusBarHeight(), backgroundColor: '#fff', flex: 1 }}>
-      <StatusBar translucent barStyle="dark-content" backgroundColor="rgba(255,255,255,0)" />
-      <View style={styles.container}>
+    <View style={[styles.container, theme === "dark" ? styles.darkContainer : styles.lightContainer]}>
+<StatusBar translucent barStyle={theme === "dark" ? "light-content" 
+  : "dark-content"} backgroundColor="transparent" />
+      <View style={{ padding: 10,}}>
         {/* Header with Service Selection */}
         <View style={styles.headerContainer}>
           <TouchableOpacity onPress={() => setModalVisible(true)}>
-            <Text style={styles.dropdownIcon}>▼</Text>
+            <Text style={[styles.dropdownIcon, { color: theme === "dark" ? "#fff" : "#2899ff" }]}>▼</Text>
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>{selectedService}</Text>
+          <Text style={[styles.headerTitle, { color: theme === "dark" ? "#fff" : "#2899ff" }]}>{selectedService}</Text>
         </View>
 
         {/* Search Bar */}
@@ -167,7 +169,7 @@ const TransactionsScreen = () => {
     }
   }}
 >
-              <View style={{ flexDirection: "row", padding: 10, backgroundColor: "#f9f9f9", borderRadius: 5, marginTop: 8 }}>
+       <View style={{ flexDirection: "row", padding: 10, backgroundColor: theme === "dark" ? "#000" : "#fff" , borderRadius: 5, marginTop: 8 }}>
               { item.servicedesc && item.servicedesc.toUpperCase().includes('AIRTEL') && (
   <Image source={require("../../../images/airtel.jpeg")} style={styles.providerLogo} />
 )}
@@ -186,7 +188,7 @@ const TransactionsScreen = () => {
 }
 
                 <View style={{ marginLeft: 10 }}>
-    <Text style={{ fontWeight: "bold",alignSelf:'flex-start' }}> { item.servicedesc && item.servicedesc.toUpperCase().includes('AIRTEL') && (
+    <Text style={{ fontWeight: "bold",alignSelf:'flex-start',color: theme === "dark" ? "#fff" : "#000" }}> { item.servicedesc && item.servicedesc.toUpperCase().includes('AIRTEL') && (
 'Airtel'
 )}
 { item.servicedesc && item.servicedesc.toUpperCase().includes('MTN') && (
@@ -202,7 +204,7 @@ const TransactionsScreen = () => {
 'Electricity Bill' : item.servicename === 'Wallet Credit' ? 'Wallet Credit' : ''
 }
 </Text>
-                  <Text>{item.date}</Text>
+                  <Text style={{color: theme === "dark" ? "#fff" : "#000"}}>{item.date}</Text>
                 </View>
                 <Text style={{ marginLeft: "auto", fontWeight: "bold", color: item.status === "0" ? "green" : item.status === "1" ? "red" : "orange" }}>
                 ₦{item.amount}
@@ -236,7 +238,9 @@ const TransactionsScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 10, backgroundColor: "#fff" },
+  container: { paddingTop: getStatusBarHeight(),  flex: 1  },
+  lightContainer: { backgroundColor: "#fff" },
+  darkContainer: { backgroundColor: "#121212" },
   headerContainer: { flexDirection: "row", alignItems: "center", marginBottom: 10 },
   dropdownIcon: { fontSize: 20, color: "#2899ff" },
   headerTitle: { fontSize: 20, fontWeight: "bold", marginLeft: 10, color: "#2899ff" },

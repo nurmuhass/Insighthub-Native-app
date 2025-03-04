@@ -1,6 +1,6 @@
 // BuyCable.js
 
-import React, { useEffect, useState } from "react";
+import React, { useContext,useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -15,12 +15,14 @@ import {
 import { Picker } from "@react-native-picker/picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
+import { ThemeContext } from "../../../ThemeContext"; 
 
 // Helper function to generate a transaction reference
 const generateTransRef = () => "CABLE" + Date.now();
 
 const BuyCable = () => {
   const router = useRouter();
+    const { theme, toggleTheme } = useContext(ThemeContext);
   
   // State variables
   const [cableProviders, setCableProviders] = useState([]);
@@ -178,16 +180,16 @@ const BuyCable = () => {
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <Text style={styles.header}>Cable Subscription</Text>
+    <ScrollView style={[styles.container, theme === "dark" ? styles.darkContainer : styles.lightContainer]}>
+      <Text style={[styles.header, { color: theme === "dark" ? "#fff" : "#000" }]}>Cable Subscription</Text>
       
       {/* Cable Provider Picker */}
-      <Text style={styles.labelText}>Select Cable Provider</Text>
-      <View style={styles.pickerContainer}>
+      <Text style={[styles.labelText, { color: theme === "dark" ? "#fff" : "#000" }]}>Select Cable Provider</Text>
+      <View style={[styles.pickerContainer, { color: theme === "dark" ? "#fff" : "#000" }]}>
         <Picker
           selectedValue={selectedProvider}
           onValueChange={(itemValue) => setSelectedProvider(itemValue)}
-          style={styles.picker}
+          style={[styles.picker, { color: theme === "dark" ? "#fff" : "#000" }]}
         >
           <Picker.Item label="Select Provider" value="" />
           {cableProviders.map((provider) => (
@@ -201,12 +203,12 @@ const BuyCable = () => {
       </View>
       
       {/* Cable Plan Picker */}
-      <Text style={styles.labelText}>Select Cable Plan</Text>
-      <View style={styles.pickerContainer}>
+      <Text style={[styles.labelText, { color: theme === "dark" ? "#fff" : "#000" }]}>Select Cable Plan</Text>
+      <View style={[styles.pickerContainer, { color: theme === "dark" ? "#fff" : "#000" }]}>
         <Picker
           selectedValue={selectedPlan}
           onValueChange={(itemValue) => handlePlanChange(itemValue)}
-          style={styles.picker}
+          style={[styles.picker, { color: theme === "dark" ? "#fff" : "#000" }]}
         >
           {filteredPlans.length === 0 ? (
             <Picker.Item label="No plans available" value="" />
@@ -223,12 +225,12 @@ const BuyCable = () => {
       </View>
       
       {/* Subscription Type Picker */}
-      <Text style={styles.labelText}>Subscription Type</Text>
-      <View style={styles.pickerContainer}>
+      <Text style={[styles.labelText, { color: theme === "dark" ? "#fff" : "#000" }]}>Subscription Type</Text>
+      <View style={[styles.pickerContainer, { color: theme === "dark" ? "#fff" : "#000" }]}>
         <Picker
           selectedValue={subscriptionType}
           onValueChange={(itemValue) => setSubscriptionType(itemValue)}
-          style={styles.picker}
+          style={[styles.picker, { color: theme === "dark" ? "#fff" : "#000" }]}
         >
           <Picker.Item label="Select Type" value="" />
           <Picker.Item label="Change" value="change" />
@@ -237,9 +239,9 @@ const BuyCable = () => {
       </View>
       
       {/* Customer Phone Number */}
-      <Text style={styles.labelText}>Customer Phone Number</Text>
+      <Text style={[styles.labelText, { color: theme === "dark" ? "#fff" : "#000" }]}>Customer Phone Number</Text>
       <TextInput
-        style={styles.input}
+        style={[styles.input, { color: theme === "dark" ? "#fff" : "#000" }]}
         placeholder="Enter phone number"
         keyboardType="phone-pad"
         value={phone}
@@ -247,9 +249,9 @@ const BuyCable = () => {
       />
       
       {/* IUC Number */}
-      <Text style={styles.labelText}>IUC Number</Text>
+      <Text style={[styles.labelText, { color: theme === "dark" ? "#fff" : "#000" }]}>IUC Number</Text>
       <TextInput
-        style={styles.input}
+        style={[styles.input, { color: theme === "dark" ? "#fff" : "#000" }]}
         placeholder="Enter IUC number"
         keyboardType="numeric"
         value={iucNumber}
@@ -257,17 +259,17 @@ const BuyCable = () => {
       />
       
       {/* Amount To Pay */}
-      <Text style={styles.labelText}>Amount To Pay</Text>
+      <Text style={[styles.labelText, { color: theme === "dark" ? "#fff" : "#000" }]}>Amount To Pay</Text>
       <TextInput
-        style={styles.input}
+        style={[styles.input, { color: theme === "dark" ? "#fff" : "#000" }]}
         value={amountToPay}
         editable={false}
       />
       
       {/* Hidden field: Cable Details (can be shown if needed) */}
-      <Text style={styles.labelText}>Plan Details</Text>
+      <Text style={[styles.labelText, { color: theme === "dark" ? "#fff" : "#000" }]}>Plan Details</Text>
       <TextInput
-        style={styles.input}
+        style={[styles.input, { color: theme === "dark" ? "#fff" : "#000" }]}
         value={cableDetails}
         editable={false}
       />
@@ -285,6 +287,8 @@ const BuyCable = () => {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#fff", padding: 20 },
+  lightContainer: { backgroundColor: "#fff" },
+  darkContainer: { backgroundColor: "#121212" },
   header: { fontSize: 24, fontWeight: "bold", textAlign: "center", marginBottom: 20, color: "#7734eb" },
   labelText: { fontSize: 16, fontWeight: "bold", marginBottom: 5, color: "#333" },
   pickerContainer: { borderWidth: 1, borderColor: "#ccc", borderRadius: 8, marginBottom: 15 },

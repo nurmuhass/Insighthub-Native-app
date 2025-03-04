@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useContext,useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, FlatList, StatusBar,Image, ScrollView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { TabView, SceneMap, TabBar } from "react-native-tab-view";
@@ -9,10 +9,12 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useEffect } from "react";
 import * as Clipboard from "expo-clipboard";
 import { Platform, ToastAndroid, Alert } from "react-native";
+import { ThemeContext } from "../../../../ThemeContext"
 
 const index = () => {
    const [profile, setProfile] = useState(null);
   const router = useRouter();
+      const { theme, toggleTheme } = useContext(ThemeContext);
     // Function to copy the referral code to clipboard
     const copyToClipboard2 = async () => {
       await Clipboard.setStringAsync(referralCode);
@@ -58,21 +60,21 @@ const referralCode = profile !=null ? profile.sPhone : '';
 
 
   return (
-      <View style={{paddingTop:getStatusBarHeight(),backgroundColor:'#fff',flex:1}}>
+      <View  style={[styles.container, theme === "dark" ? styles.darkContainer : styles.lightContainer]}>
           <StatusBar
     translucent
     barStyle="dark-content"
     backgroundColor="rgba(255, 255, 255, 0)" // Transparent white color
   />
       <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-        <Ionicons name="arrow-back" size={24} color="#7734eb" />
+        <Ionicons name="arrow-back" size={24} color={theme === "dark" ? "#fff" : "#000"}/>
       </TouchableOpacity>
-      <Text style={styles.headerTitle}>Referral</Text>
+      <Text style={[styles.headerTitle, { color: theme === "dark" ? "#fff" : "#7734eb" }]}>Referral</Text>
 
       <View style={styles.tabContainer}>
-    <View style={styles.bonusCard}>
-      <Text style={styles.bonusText}>Wallet</Text>
-      <Text style={styles.amount}>N {profile !=null ? profile.sWallet : ''}</Text>
+    <View style={[styles.bonusCard, { backgroundColor: theme === "dark" ? "#000" : "#f5f5f5" }]}>
+      <Text style={[styles.bonusText, { color: theme === "dark" ? "#fff" : "#7734eb" }]}>Wallet</Text>
+      <Text style={[styles.amount, { color: theme === "dark" ? "#fff" : "#7734eb" }]}>N {profile !=null ? profile.sWallet : ''}</Text>
     </View>
     {/* <TouchableOpacity style={styles.moveBonusButton}>
       <Text style={styles.moveBonusText}>Move Bonus to Wallet</Text>
@@ -85,13 +87,13 @@ const referralCode = profile !=null ? profile.sPhone : '';
     marginVertical: 20,
     alignSelf:'center'}} />
 
-    <Text style={styles.inviteText}>Invite your friends and receive bonus on their transactions</Text>
-    <Text style={styles.inviteDescription}>
+    <Text style={[styles.inviteText, { color: theme === "dark" ? "#fff" : "#7734eb" }]}>Invite your friends and receive bonus on their transactions</Text>
+    <Text style={[styles.inviteDescription, { color: theme === "dark" ? "#fff" : "#7734eb" }]}>
       Invite your friends to join and unlock exciting rewards! Simply share your referral code.
     </Text>
-    <Text style={styles.referralLabel}>Your unique referral code</Text>
+    <Text style={[styles.referralLabel, { color: theme === "dark" ? "#fff" : "#7734eb" }]}>Your unique referral code</Text>
     <View style={styles.referralBox}>
-      <Text style={styles.referralCode}>{referralCode}</Text>
+      <Text style={[styles.referralCode, { color: theme === "dark" ? "#fff" : "#7734eb" }]}>{referralCode}</Text>
 
       <TouchableOpacity style={styles.copyButton} onPress={copyToClipboard2}>
         <Ionicons name="copy-outline" size={20} color="#fff" />
@@ -110,9 +112,11 @@ const referralCode = profile !=null ? profile.sPhone : '';
 export default index;
 
 const styles = StyleSheet.create({
+  container:{paddingTop:getStatusBarHeight(),backgroundColor:'#fff',flex:1},
   backButton: {
     margin: 15,
-  },
+  },  lightContainer: { backgroundColor: "#fff" },
+  darkContainer: { backgroundColor: "#121212" },
   headerTitle: {
     fontSize: 22,
     fontWeight: "bold",

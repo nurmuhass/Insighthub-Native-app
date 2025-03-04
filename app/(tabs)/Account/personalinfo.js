@@ -1,16 +1,16 @@
 import { View, Text, StatusBar, TextInput, TouchableOpacity, StyleSheet } from 'react-native'
-import React, { useEffect, useState } from 'react'
+import React, { useContext,useEffect, useState } from 'react'
 import { getStatusBarHeight } from 'react-native-status-bar-height'
 import { Ionicons } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { signOut } from '../../../store'
 import { Icon } from '@rneui/themed'
-
+import { ThemeContext } from "../../../ThemeContext";
 
 const personalinfo = () => {
 
-
+      const { theme, toggleTheme } = useContext(ThemeContext);
       const [profile, setProfile] = useState(null);
 
       const router = useRouter(); 
@@ -55,7 +55,7 @@ const personalinfo = () => {
       }
 
   return (
-    <View style={{flex:1,backgroundColor:'#fff',paddingTop:getStatusBarHeight(),}}>
+    <View style={[styles.container, theme === "dark" ? styles.darkContainer : styles.lightContainer]}>
       <StatusBar
               translucent
               barStyle="dark-content"
@@ -64,17 +64,17 @@ const personalinfo = () => {
 <View style={{flexDirection:'row',alignItems:'center',marginTop:5}}>
 
     <TouchableOpacity onPress={() => router.back()}>
-             <Ionicons name="arrow-back" size={24} color="black" style={{marginLeft:8}} />
+             <Ionicons name="arrow-back" size={24} color={theme === "dark" ? "#fff" : "#000"} style={{marginLeft:8}} />
     </TouchableOpacity>
 
-<Text style={{alignSelf:'center',fontSize:20,marginLeft:5}}>Profile Details</Text>
+<Text style={{alignSelf:'center',fontSize:20,marginLeft:5,color:theme === "dark" ? "#fff" : "#000"}}>Profile Details</Text>
 </View>
      
      <View style={{marginTop:40}}>
-      <Text style={styles.header}>First Name</Text>
+      <Text style={[styles.header, { color: theme === "dark" ? "#fff" : "#7734eb" }]}>First Name</Text>
         <TextInput 
         style={{ borderWidth: 1, borderColor: "#ccc", padding: 10, borderRadius: 5,
-             marginTop: 3 ,width:'94%',alignSelf:'center',height:50}}
+             marginTop: 3 ,width:'94%',alignSelf:'center',height:50,color: theme === "dark" ? "#fff" : "#7734eb" }}
         placeholder="Enter Full Name"
         keyboardType="ascii-capable"
         value={profile.sFname}
@@ -82,17 +82,17 @@ const personalinfo = () => {
         />
 
 
-<Text style={styles.header}>Last Name</Text>
+<Text style={[styles.header, { color: theme === "dark" ? "#fff" : "#7734eb" }]}>Last Name</Text>
 <TextInput 
         style={{ borderWidth: 1, borderColor: "#ccc", padding: 10, borderRadius: 5,
-             marginTop: 5 ,width:'94%',alignSelf:'center',marginTop:10,height:50}}
+             marginTop: 5 ,width:'94%',alignSelf:'center',marginTop:10,height:50,color: theme === "dark" ? "#fff" : "#7734eb"}}
         placeholder="Enter phone"
         keyboardType="ascii-capable"
         value={profile.sLname}
         editable={false}  // This disables the TextInput
         />
 
-<Text style={styles.header}>Email</Text>
+<Text style={[styles.header, { color: theme === "dark" ? "#fff" : "#7734eb" }]}>Email</Text>
 <TextInput  
   style={{
     borderWidth: 1,
@@ -102,7 +102,8 @@ const personalinfo = () => {
     width: '94%',
     alignSelf: 'center',
     marginTop: 10,
-    height: 50,
+    height: 50
+    ,color: theme === "dark" ? "#fff" : "#7734eb"
   }}
   placeholder="Enter Address"
   keyboardType="ascii-capable"
@@ -111,7 +112,7 @@ const personalinfo = () => {
 />
 
 
-<Text style={styles.header}>Phone</Text>
+<Text style={[styles.header, { color: theme === "dark" ? "#fff" : "#7734eb" }]}>Phone</Text>
 <TextInput  
   style={{
     borderWidth: 1,
@@ -121,7 +122,7 @@ const personalinfo = () => {
     width: '94%',
     alignSelf: 'center',
     marginTop: 10,
-    height: 50,
+    height: 50,color: theme === "dark" ? "#fff" : "#7734eb"
   }}
   placeholder="Enter Address"
   keyboardType="ascii-capable"
@@ -129,7 +130,7 @@ const personalinfo = () => {
   editable={false}  // This disables the TextInput
 />
 
-<Text style={styles.header}>Email</Text>
+<Text style={[styles.header, { color: theme === "dark" ? "#fff" : "#7734eb" }]}>Email</Text>
 <TextInput  
   style={{
     borderWidth: 1,
@@ -139,7 +140,7 @@ const personalinfo = () => {
     width: '94%',
     alignSelf: 'center',
     marginTop: 10,
-    height: 50,
+    height: 50,color: theme === "dark" ? "#fff" : "#7734eb"
   }}
   placeholder="Enter Address"
   keyboardType="ascii-capable"
@@ -156,6 +157,11 @@ const personalinfo = () => {
 
 export default personalinfo
 const styles = StyleSheet.create({
-header:{fontSize: 16, marginTop: 5, marginBottom: 0, fontWeight: "bold", color: "#333",marginLeft:12}
+  container:{
+    flex:1,backgroundColor:'#fff',paddingTop:getStatusBarHeight()
+  },
+header:{fontSize: 16, marginTop: 5, marginBottom: 0, fontWeight: "bold", color: "#333",marginLeft:12},
+lightContainer: { backgroundColor: "#fff" },
+darkContainer: { backgroundColor: "#121212" },
 
 })

@@ -1,5 +1,5 @@
 // BuyData page
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -12,7 +12,7 @@ import {
   ScrollView,
   TouchableHighlight,
   FlatList,
-  Modal
+  Modal,contex
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import { useRouter } from "expo-router";
@@ -20,7 +20,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import ReAuthModalWrapper from "../../../components/ReAuthModalWrapper";
 import { MaterialIcons } from "@expo/vector-icons";
 import * as Contacts from 'expo-contacts';
-
+import { ThemeContext } from "../../../ThemeContext"; 
+import { getStatusBarHeight } from "react-native-status-bar-height";
 // Helper function to generate a transaction reference
 const generateTransRef = () => "TRANS" + Date.now();
 
@@ -45,6 +46,7 @@ const BuyDataScreen = () => {
   const [reauthVisible, setReauthVisible] = useState(false);
   const [contacts, setContacts] = useState([]);
 const [modalVisible, setModalVisible] = useState(false);
+  const { theme, toggleTheme } = useContext(ThemeContext);
   // 1. Fetch networks and data plans from your endpoint
   useEffect(() => {
     const fetchNetworksAndPlans = async () => {
@@ -285,16 +287,16 @@ const [modalVisible, setModalVisible] = useState(false);
   };
   
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={[styles.container, theme === "dark" ? styles.darkContainer : styles.lightContainer]}>
       <Text style={styles.header}>Buy Data</Text>
       
       {/* Select Network */}
-      <Text style={styles.subHeader}>Select Network</Text>
+      <Text style={[styles.subHeader, { color: theme === "dark" ? "#fff" : "#000" }]}>Select Network</Text>
       <View style={styles.pickerContainer}>
         <Picker
           selectedValue={selectedNetwork}
           onValueChange={(itemValue) => setSelectedNetwork(itemValue)}
-          style={styles.picker}
+          style={[styles.picker, { color: theme === "dark" ? "#fff" : "#000" }]}
         >
           <Picker.Item label="Select Network" value="" />
           {networks.map(net => (
@@ -308,12 +310,12 @@ const [modalVisible, setModalVisible] = useState(false);
       </View>
       
       {/* Select Data Type */}
-      <Text style={styles.subHeader}>Select Data Type</Text>
-      <View style={styles.pickerContainer}>
+      <Text style={[styles.subHeader, { color: theme === "dark" ? "#fff" : "#000" }]}>Select Data Type</Text>
+      <View style={[styles.pickerContainer,, { color: theme === "dark" ? "#fff" : "#000" }]}>
         <Picker
           selectedValue={selectedDataType}
           onValueChange={(itemValue) => setSelectedDataType(itemValue)}
-          style={styles.picker}
+          style={[styles.picker, { color: theme === "dark" ? "#fff" : "#000" }]}
         >
           {dataTypes.length === 0 ? (
             <Picker.Item label="Select Type" value="" />
@@ -326,12 +328,12 @@ const [modalVisible, setModalVisible] = useState(false);
       </View>
       
       {/* Select Data Plan */}
-      <Text style={styles.subHeader}>Select Data Plan</Text>
-      <View style={styles.pickerContainer}>
+      <Text style={[styles.subHeader, { color: theme === "dark" ? "#fff" : "#000" }]}>Select Data Plan</Text>
+      <View style={[styles.pickerContainer, { color: theme === "dark" ? "#fff" : "#000" }]}>
         <Picker
           selectedValue={selectedDataPlan}
           onValueChange={(itemValue) => handleDataPlanChange(itemValue)}
-          style={styles.picker}
+          style={[styles.picker, { color: theme === "dark" ? "#fff" : "#000" }]}
         >
           {filteredDataPlans.length === 0 ? (
             <Picker.Item label="No plans available" value="" />
@@ -349,11 +351,11 @@ const [modalVisible, setModalVisible] = useState(false);
       </View>
       
       {/* Phone Number */}
-      <Text style={styles.subHeader}>Phone Number</Text>
+      <Text style={[styles.subHeader, { color: theme === "dark" ? "#fff" : "#000" }]}>Phone Number</Text>
    
        <View style={{position:'relative'}}>
        <TextInput
-        style={styles.input}
+        style={[styles.input, { color: theme === "dark" ? "#fff" : "#000" }]}
         placeholder="Enter phone number"
         keyboardType="phone-pad"
         value={phone}
@@ -366,9 +368,9 @@ const [modalVisible, setModalVisible] = useState(false);
       </View>
       
       {/* Amount To Pay */}
-      <Text style={styles.subHeader}>Amount To Pay</Text>
+      <Text style={[styles.subHeader, { color: theme === "dark" ? "#fff" : "#000" }]}>Amount To Pay</Text>
       <TextInput
-        style={styles.input}
+        style={[styles.input, { color: theme === "dark" ? "#fff" : "#000" }]}
         value={amountToPay}
         editable={false}
       />
@@ -427,7 +429,9 @@ const [modalVisible, setModalVisible] = useState(false);
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: "#fff" },
+  container: { flex: 1, paddingTop: getStatusBarHeight(),paddingHorizontal:15,  backgroundColor: "#fff" },
+  lightContainer: { backgroundColor: "#fff" },
+  darkContainer: { backgroundColor: "#121212" },
   header: { fontSize: 24, fontWeight: "bold", textAlign: "center", marginBottom: 10, color: "#7734eb" },
   subHeader: { fontSize: 16, marginTop: 10, marginBottom: 5, fontWeight: "bold", color: "#333" },
   pickerContainer: { borderWidth: 1, borderColor: "#ccc", borderRadius: 8, marginBottom: 15 },

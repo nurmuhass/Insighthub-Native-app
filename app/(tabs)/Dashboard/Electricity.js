@@ -1,6 +1,6 @@
 // ElectricityScreen.js
 
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -15,10 +15,11 @@ import { Picker } from '@react-native-picker/picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import ReAuthModalWrapper from '../../../components/ReAuthModalWrapper';
+import { ThemeContext } from "../../../ThemeContext"; 
 
 const ElectricityScreen = () => {
   const router = useRouter();
-  
+  const { theme, toggleTheme } = useContext(ThemeContext);
   // State for fetched data and form fields
   const [providers, setProviders] = useState([]);
   const [electricityCharge, setElectricityCharge] = useState(""); // from site settings
@@ -160,16 +161,16 @@ const ElectricityScreen = () => {
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <Text style={styles.header}>Electricity Purchase</Text>
+    <ScrollView style={[styles.container, theme === "dark" ? styles.darkContainer : styles.lightContainer]}>
+      <Text style={[styles.header, { color: theme === "dark" ? "#fff" : "#000" }]}>Electricity Purchase</Text>
       
       {/* Provider Picker */}
-      <Text style={styles.subHeader}>Select Provider</Text>
-      <View style={styles.pickerContainer}>
+      <Text style={[styles.subHeader, { color: theme === "dark" ? "#fff" : "#000" }]}>Select Provider</Text>
+      <View style={[styles.pickerContainer, { color: theme === "dark" ? "#fff" : "#000" }]}>
         <Picker
           selectedValue={selectedProvider}
           onValueChange={(itemValue) => setSelectedProvider(itemValue)}
-          style={styles.picker}
+          style={[styles.picker, { color: theme === "dark" ? "#fff" : "#000" }]}
         >
           <Picker.Item label="Select Provider" value="" />
           {providers.map(provider => (
@@ -183,12 +184,12 @@ const ElectricityScreen = () => {
       </View>
       
       {/* Meter Type Picker */}
-      <Text style={styles.subHeader}>Meter Type</Text>
-      <View style={styles.pickerContainer}>
+      <Text style={[styles.subHeader, { color: theme === "dark" ? "#fff" : "#000" }]}>Meter Type</Text>
+      <View style={[styles.pickerContainer, { color: theme === "dark" ? "#fff" : "#000" }]}>
         <Picker
           selectedValue={meterType}
           onValueChange={(itemValue) => setMeterType(itemValue)}
-          style={styles.picker}
+          style={[styles.picker, { color: theme === "dark" ? "#fff" : "#000" }]}
         >
           <Picker.Item label="Select Meter Type" value="" />
           <Picker.Item label="Prepaid" value="prepaid" />
@@ -197,9 +198,9 @@ const ElectricityScreen = () => {
       </View>
       
       {/* Customer Phone Number */}
-      <Text style={styles.subHeader}>Customer Phone Number</Text>
+      <Text style={[styles.subHeader, { color: theme === "dark" ? "#fff" : "#000" }]}>Customer Phone Number</Text>
       <TextInput
-        style={styles.input}
+        style={[styles.input, { color: theme === "dark" ? "#fff" : "#000" }]}
         placeholder="Enter phone number"
         keyboardType="phone-pad"
         value={phone}
@@ -207,9 +208,9 @@ const ElectricityScreen = () => {
       />
       
       {/* Meter Number */}
-      <Text style={styles.subHeader}>Meter Number</Text>
+      <Text style={[styles.subHeader, { color: theme === "dark" ? "#fff" : "#000" }]}>Meter Number</Text>
       <TextInput
-        style={styles.input}
+        style={[styles.input, { color: theme === "dark" ? "#fff" : "#000" }]}
         placeholder="Enter meter number"
         keyboardType="numeric"
         value={meterNumber}
@@ -217,9 +218,9 @@ const ElectricityScreen = () => {
       />
       
       {/* Amount Input */}
-      <Text style={styles.subHeader}>Amount</Text>
+      <Text style={[styles.subHeader, { color: theme === "dark" ? "#fff" : "#000" }]}>Amount</Text>
       <TextInput
-        style={styles.input}
+        style={[styles.input, { color: theme === "dark" ? "#fff" : "#000" }]}
         placeholder="Enter Amount"
         keyboardType="numeric"
         value={amount}
@@ -227,15 +228,15 @@ const ElectricityScreen = () => {
       />
       
       {/* Amount To Pay */}
-      <Text style={styles.subHeader}>Amount To Pay</Text>
+      <Text style={[styles.subHeader, { color: theme === "dark" ? "#fff" : "#000" }]}>Amount To Pay</Text>
       <TextInput
-        style={styles.input}
+        style={[styles.input, { color: theme === "dark" ? "#fff" : "#000" }]}
         value={amountToPay}
         editable={false}
       />
       
       {/* Display Electricity Charge Note */}
-      <Text style={styles.note}>
+      <Text style={[styles.note, { color: theme === "dark" ? "#fff" : "#000" }]}>
         Note: Transaction attracts a service charge of N{electricityCharge} only.{"\n"}
         Minimum Unit Purchase is N1000.
       </Text>
@@ -245,7 +246,7 @@ const ElectricityScreen = () => {
         {loading ? (
           <ActivityIndicator color="#fff" />
         ) : (
-          <Text style={styles.buttonText}>Continue</Text>
+          <Text style={[styles.buttonText, { color: theme === "dark" ? "#fff" : "#000" }]}>Continue</Text>
         )}
       </TouchableOpacity>
 
@@ -255,6 +256,8 @@ const ElectricityScreen = () => {
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 20, backgroundColor: "#fff" },
+  lightContainer: { backgroundColor: "#fff" },
+  darkContainer: { backgroundColor: "#121212" },
   header: { fontSize: 24, fontWeight: "bold", textAlign: "center", marginBottom: 15, color: "#7734eb" },
   subHeader: { fontSize: 16, marginTop: 10, marginBottom: 5, fontWeight: "bold", color: "#333" },
   pickerContainer: { borderWidth: 1, borderColor: "#ccc", borderRadius: 8, marginBottom: 15 },

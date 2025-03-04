@@ -1,6 +1,6 @@
 // ConfirmCable.js
 
-import React, { useState } from 'react';
+import React, {useContext, useState } from 'react';
 import {
   View,
   Text,
@@ -14,12 +14,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 // Depending on your expo-router version, use the appropriate hook:
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import ReAuthModalWrapper from '../../../components/ReAuthModalWrapper';
+import { ThemeContext } from "../../../ThemeContext"; 
 
 const ConfirmPayCable = () => {
   const router = useRouter();
   const params = useLocalSearchParams();
     const [reauthVisible, setReauthVisible] = useState(false);
-
+    const { theme, toggleTheme } = useContext(ThemeContext);
   // Expected parameter: verificationData (a JSON string)
   const { verificationData } = params;
   let data = {};
@@ -110,48 +111,48 @@ const ConfirmPayCable = () => {
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <Text style={styles.header}>Confirm Cable Subscription</Text>
+    <ScrollView style={[styles.container, theme === "dark" ? styles.darkContainer : styles.lightContainer]}>
+      <Text style={[styles.header, { color: theme === "dark" ? "#fff" : "#000" }]}>Confirm Cable Subscription</Text>
       
       {/* Display the details from the verification response */}
       <View style={styles.detailRow}>
-        <Text style={styles.label}>Provider:</Text>
-        <Text style={styles.value}>{data.providerName || data.provider || "N/A"}</Text>
+        <Text style={[styles.label, { color: theme === "dark" ? "#fff" : "#000" }]}>Provider:</Text>
+        <Text style={[styles.value, { color: theme === "dark" ? "#fff" : "#000" }]}>{data.providerName || data.provider || "N/A"}</Text>
       </View>
       
       <View style={styles.detailRow}>
-        <Text style={styles.label}>Plan:</Text>
-        <Text style={styles.value}>{data.cabledetails || "N/A"}</Text>
+        <Text style={[styles.label, { color: theme === "dark" ? "#fff" : "#000" }]}>Plan:</Text>
+        <Text style={[styles.value, { color: theme === "dark" ? "#fff" : "#000" }]}>{data.cabledetails || "N/A"}</Text>
       </View>
       
       <View style={styles.detailRow}>
-        <Text style={styles.label}>Amount To Pay:</Text>
-        <Text style={styles.value}>{data.amounttopay || "N/A"}</Text>
+        <Text style={[styles.label, { color: theme === "dark" ? "#fff" : "#000" }]}>Amount To Pay:</Text>
+        <Text style={[styles.value, { color: theme === "dark" ? "#fff" : "#000" }]}>{data.amounttopay || "N/A"}</Text>
       </View>
       
       <View style={styles.detailRow}>
-        <Text style={styles.label}>Subscription Type:</Text>
-        <Text style={styles.value}>{data.subtype || "N/A"}</Text>
+        <Text style={[styles.label, { color: theme === "dark" ? "#fff" : "#000" }]}>Subscription Type:</Text>
+        <Text style={[styles.value, { color: theme === "dark" ? "#fff" : "#000" }]}>{data.subtype || "N/A"}</Text>
       </View>
       
       <View style={styles.detailRow}>
-        <Text style={styles.label}>Phone Number:</Text>
-        <Text style={styles.value}>{data.phone || "N/A"}</Text>
+        <Text style={[styles.label, { color: theme === "dark" ? "#fff" : "#000" }]}>Phone Number:</Text>
+        <Text style={[styles.value, { color: theme === "dark" ? "#fff" : "#000" }]}>{data.phone || "N/A"}</Text>
       </View>
       
       <View style={styles.detailRow}>
-        <Text style={styles.label}>IUC Number:</Text>
-        <Text style={styles.value}>{data.iucnumber || "N/A"}</Text>
+        <Text style={[styles.label, { color: theme === "dark" ? "#fff" : "#000" }]}>IUC Number:</Text>
+        <Text style={[styles.value, { color: theme === "dark" ? "#fff" : "#000" }]}>{data.iucnumber || "N/A"}</Text>
       </View>
       
       {data.Customer_Name && (
         <View style={styles.detailRow}>
-          <Text style={styles.label}>Customer Name:</Text>
-          <Text style={styles.value}>{data.Customer_Name}</Text>
+          <Text style={[styles.label, { color: theme === "dark" ? "#fff" : "#000" }]}>Customer Name:</Text>
+          <Text style={[styles.value, { color: theme === "dark" ? "#fff" : "#000" }]}>{data.Customer_Name}</Text>
         </View>
       )}
       
-      <Text style={styles.note}>
+      <Text style={[styles.note, { color: theme === "dark" ? "#fff" : "#000" }]}>
         Please confirm that the above details are correct before you click on "Purchase Plan".
       </Text>
       
@@ -164,7 +165,7 @@ const ConfirmPayCable = () => {
       </TouchableOpacity>
       
       <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-        <Text style={styles.backButtonText}>Go Back</Text>
+        <Text style={[styles.backButtonText, { color: theme === "dark" ? "#fff" : "#000" }]}>Go Back</Text>
       </TouchableOpacity>
       <ReAuthModalWrapper
         visible={reauthVisible}
@@ -178,6 +179,8 @@ const ConfirmPayCable = () => {
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 20, backgroundColor: "#fff" },
+  lightContainer: { backgroundColor: "#fff" },
+  darkContainer: { backgroundColor: "#121212" },
   header: { fontSize: 24, fontWeight: "bold", textAlign: "center", marginBottom: 20, color: "#7734eb" },
   detailRow: { flexDirection: "row", marginBottom: 10 },
   label: { fontWeight: "bold", width: 150, color: "#333" },
