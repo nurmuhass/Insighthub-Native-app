@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext,useEffect, useState } from 'react';
 import { 
   View, Text, TouchableOpacity, StyleSheet, Image, 
-  Alert, Platform 
+  Alert, Platform, 
+  StatusBar
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as LocalAuthentication from 'expo-local-authentication'; // For biometric
@@ -9,10 +10,11 @@ import { useRouter } from 'expo-router';
 import { getStatusBarHeight } from 'react-native-status-bar-height';
 import { signOut } from '../../store';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { ThemeContext } from "../../ThemeContext";
 
 const LockScreen = () => {
   const router = useRouter();
-  
+   const { theme, toggleTheme } = useContext(ThemeContext);
   const [enteredPin, setEnteredPin] = useState("");
   const [storedPin, setStoredPin] = useState("");
   const [pinLength] = useState(4); 
@@ -147,7 +149,7 @@ const LockScreen = () => {
             onPress={() => handleKeyPress(digit)}
           >
             {digit === "fingerprint" ? (
-          <MaterialCommunityIcons name="fingerprint" size={40} color="#7734eb" />
+          <MaterialCommunityIcons name="fingerprint" size={40} color={theme === "dark" ? "#fff" : "#7734eb"}/>
             ) : digit === "back" ? (
               <Text style={styles.keyText}>{"\u2190"}</Text>
             ) : (
@@ -160,7 +162,8 @@ const LockScreen = () => {
   };
 
   return (
-    <View style={{paddingTop:getStatusBarHeight(),backgroundColor:'#fff',flex:1,  alignItems: "center",}}>
+    <View style={[styles.container, theme === "dark" ? styles.darkContainer : styles.lightContainer]} >
+        <StatusBar translucent barStyle={theme === "dark" ? "light-content" : "dark-content"} backgroundColor="transparent" />
       {/* Avatar */}
       <View style={styles.avatarContainer}>
         <Image 
@@ -168,7 +171,7 @@ const LockScreen = () => {
           style={styles.avatar} 
         />
       </View>
-      <Text style={styles.title}>Enter Passcode</Text>
+      <Text style={[styles.title, { color: theme === "dark" ? "#fff" : "#7734eb" }]}>Enter Passcode</Text>
 
       {/* Dots */}
       {renderDots()}
@@ -188,11 +191,10 @@ export default LockScreen;
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: "#fff",
-    padding: 5,
-    alignItems: "center",
+paddingTop:getStatusBarHeight(),flex:1,  alignItems: "center"
   },
+  lightContainer: { backgroundColor: "#fff" },
+darkContainer: { backgroundColor: "#121212" },
   avatarContainer: {
     marginTop: 20,
     marginBottom: 20,

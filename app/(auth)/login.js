@@ -1,9 +1,11 @@
 // login.js
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView } from 'react-native';
+import React, { useContext,useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView, StatusBar } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { ThemeContext } from "../../ThemeContext";
+import { getStatusBarHeight } from 'react-native-status-bar-height';
 
 const API_URL = "https://insighthub.com.ng/mobile/home/includes/route.php?login";
 
@@ -20,7 +22,7 @@ export default function SignInScreen() {
   const [password, setPassword] = useState('');
   const [passwordVisible, setPasswordVisible] = useState(false);
   const router = useRouter();
-
+      const { theme, toggleTheme } = useContext(ThemeContext);
   const handleLogin = async () => {
     if (!phone || !password) {
       Alert.alert("Error", "Please fill in all required fields");
@@ -78,15 +80,16 @@ export default function SignInScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.logo}>InsightHub</Text>
-      <Text style={styles.title}>Welcome Back 👋</Text>
-      <Text style={styles.subtitle}>Sign in to your account</Text>
+    <View style={[styles.container, theme === "dark" ? styles.darkContainer : styles.lightContainer]}>
+        <StatusBar translucent barStyle={theme === "dark" ? "light-content" : "dark-content"} backgroundColor="transparent" />
+      <Text style={[styles.logo, { color: theme === "dark" ? "#fff" : "#7734eb" }]}>InsightHub</Text>
+      <Text style={[styles.title, { color: theme === "dark" ? "#fff" : "#7734eb" }]}>Welcome Back 👋</Text>
+      <Text style={[styles.subtitle, { color: theme === "dark" ? "#fff" : "#7734eb" }]}>Sign in to your account</Text>
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.inputContainer}>
-          <Text style={styles.label}>Phone Number</Text>
+          <Text style={[styles.label, { color: theme === "dark" ? "#fff" : "#7734eb" }]}>Phone Number</Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, { color: theme === "dark" ? "#fff" : "#7734eb" }]}
             placeholder="Enter your phone number"
             keyboardType="phone-pad"
             value={phone}
@@ -94,10 +97,10 @@ export default function SignInScreen() {
           />
         </View>
         <View style={styles.inputContainer}>
-          <Text style={styles.label}>Password</Text>
+          <Text style={[styles.label, { color: theme === "dark" ? "#fff" : "#7734eb" }]}>Password</Text>
           <View style={styles.passwordInputContainer}>
             <TextInput
-              style={styles.input}
+              style={[styles.input, { color: theme === "dark" ? "#fff" : "#7734eb" }]}
               placeholder="Enter your password"
               secureTextEntry={!passwordVisible}
               value={password}
@@ -129,7 +132,9 @@ export default function SignInScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: '#fff', justifyContent: 'center' },
+  container: { flex: 1, padding: 20, backgroundColor: '#fff', justifyContent: 'center',paddingTop:getStatusBarHeight(), },
+  lightContainer: { backgroundColor: "#fff" },
+  darkContainer: { backgroundColor: "#121212" },
   logo: { fontSize: 28, fontWeight: 'bold', textAlign: 'center', color: '#7734eb', marginBottom: 10 },
   title: { fontSize: 20, fontWeight: 'bold', textAlign: 'center' },
   subtitle: { fontSize: 16, textAlign: 'center', color: 'gray', marginBottom: 20 },

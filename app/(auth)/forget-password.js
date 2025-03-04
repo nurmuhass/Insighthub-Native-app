@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { useRouter } from "expo-router";
+import { getStatusBarHeight } from "react-native-status-bar-height";
 
 export default function ForgotPasswordScreen() {
   const [step, setStep] = useState(1);       // 1: Email, 2: Code, 3: New Password
@@ -278,6 +279,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     padding: 20,
     justifyContent: "center",
+    paddingTop:getStatusBarHeight()
   },
   logo: {
     fontSize: 28,

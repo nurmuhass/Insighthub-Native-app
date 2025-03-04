@@ -3,6 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from "reac
 import axios from "axios";
 import { ScrollView } from "react-native";
 import { useRouter } from "expo-router";
+import { getStatusBarHeight } from "react-native-status-bar-height";
 
 const RegisterScreen = () => {
   // State for registration fields
@@ -163,6 +164,7 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
     backgroundColor: "#fff",
+    paddingTop:getStatusBarHeight()
   },
   logo: {
     fontSize: 24,

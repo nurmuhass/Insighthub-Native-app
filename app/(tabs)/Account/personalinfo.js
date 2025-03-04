@@ -56,11 +56,7 @@ const personalinfo = () => {
 
   return (
     <View style={[styles.container, theme === "dark" ? styles.darkContainer : styles.lightContainer]}>
-      <StatusBar
-              translucent
-              barStyle="dark-content"
-              backgroundColor="rgba(255, 255, 255, 0)" // Transparent white color
-            />
+     <StatusBar translucent barStyle={theme === "dark" ? "light-content" : "dark-content"} backgroundColor="transparent" />
 <View style={{flexDirection:'row',alignItems:'center',marginTop:5}}>
 
     <TouchableOpacity onPress={() => router.back()}>
