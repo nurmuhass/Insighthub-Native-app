@@ -163,7 +163,7 @@ const AirtimeSwap = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20,paddingTop: getStatusBarHeight(), },
+  container: { flex: 1, padding: 10,paddingTop: getStatusBarHeight(), },
   lightContainer: { backgroundColor: "#fff" },
   darkContainer: { backgroundColor: "#121212" },
 });

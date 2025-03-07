@@ -6,6 +6,7 @@ import { useRouter } from 'expo-router';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ThemeContext } from "../../ThemeContext";
 import { getStatusBarHeight } from 'react-native-status-bar-height';
+import { ActivityIndicator } from 'react-native';
 
 const API_URL = "https://insighthub.com.ng/mobile/home/includes/route.php?login";
 
@@ -21,10 +22,13 @@ export default function SignInScreen() {
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [passwordVisible, setPasswordVisible] = useState(false);
+   const [loading, setLoading] = useState(false);
   const router = useRouter();
       const { theme, toggleTheme } = useContext(ThemeContext);
   const handleLogin = async () => {
+    setLoading(true);
     if (!phone || !password) {
+      setLoading(false);
       Alert.alert("Error", "Please fill in all required fields");
       return;
     }
@@ -49,6 +53,7 @@ export default function SignInScreen() {
         // Look for the set-cookie header
         const rawCookie = response.headers.get('set-cookie');
         console.log("Raw cookie header:", rawCookie);
+        setLoading(false);
         if (rawCookie) {
           // Save the entire cookie string (if needed)
           await AsyncStorage.setItem('cookie', rawCookie);
@@ -68,28 +73,32 @@ export default function SignInScreen() {
         router.push("../(tabs)/Dashboard");
       } else if (responseText === "1") {
         Alert.alert("Error", "Incorrect Login Details, Please Try Again.");
+        setLoading(false);
       } else if (responseText === "2") {
         Alert.alert("Error", "Sorry, Your Account Has Been Blocked. Please Contact Admin.");
+        setLoading(false);
       } else {
         Alert.alert("Error", "Unknown error. Please contact admin.");
+        setLoading(false);
       }
     } catch (error) {
       console.error("Login error:", error);
       Alert.alert("Error", "Something went wrong. Please check your network or try again later.");
+      
     }
   };
 
   return (
     <View style={[styles.container, theme === "dark" ? styles.darkContainer : styles.lightContainer]}>
         <StatusBar translucent barStyle={theme === "dark" ? "light-content" : "dark-content"} backgroundColor="transparent" />
-      <Text style={[styles.logo, { color: theme === "dark" ? "#fff" : "#7734eb" }]}>InsightHub</Text>
-      <Text style={[styles.title, { color: theme === "dark" ? "#fff" : "#7734eb" }]}>Welcome Back 👋</Text>
-      <Text style={[styles.subtitle, { color: theme === "dark" ? "#fff" : "#7734eb" }]}>Sign in to your account</Text>
+      <Text style={[styles.logo, { color: theme === "dark" ? "#fff" : "#000" }]}>InsightHub</Text>
+      <Text style={[styles.title, { color: theme === "dark" ? "#fff" : "#000" }]}>Welcome Back 👋</Text>
+      <Text style={[styles.subtitle, { color: theme === "dark" ? "#fff" : "#000" }]}>Sign in to your account</Text>
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.inputContainer}>
-          <Text style={[styles.label, { color: theme === "dark" ? "#fff" : "#7734eb" }]}>Phone Number</Text>
+          <Text style={[styles.label, { color: theme === "dark" ? "#fff" : "#000" }]}>Phone Number</Text>
           <TextInput
-            style={[styles.input, { color: theme === "dark" ? "#fff" : "#7734eb" }]}
+            style={[styles.input, { color: theme === "dark" ? "#fff" : "#000" }]}
             placeholder="Enter your phone number"
             keyboardType="phone-pad"
             value={phone}
@@ -97,10 +106,10 @@ export default function SignInScreen() {
           />
         </View>
         <View style={styles.inputContainer}>
-          <Text style={[styles.label, { color: theme === "dark" ? "#fff" : "#7734eb" }]}>Password</Text>
+          <Text style={[styles.label, { color: theme === "dark" ? "#fff" : "#000" }]}>Password</Text>
           <View style={styles.passwordInputContainer}>
             <TextInput
-              style={[styles.input, { color: theme === "dark" ? "#fff" : "#7734eb" }]}
+              style={[styles.input, { color: theme === "dark" ? "#fff" : "#000c" }]}
               placeholder="Enter your password"
               secureTextEntry={!passwordVisible}
               value={password}
@@ -117,9 +126,17 @@ export default function SignInScreen() {
         <TouchableOpacity onPress={() => router.push("/forget-password")}>
           <Text style={styles.forgotPassword}>Forget Password?</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
+
+
+ <TouchableOpacity style={styles.loginButton} onPress={handleLogin} disabled={loading}>
+        {loading ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
           <Text style={styles.loginButtonText}>Sign In</Text>
-        </TouchableOpacity>
+        )}
+      </TouchableOpacity>
+
+
         <Text style={styles.signUpText}>
           Don't have an account?{' '}
           <Text style={styles.signUpLink} onPress={() => router.push("/create-account")}>

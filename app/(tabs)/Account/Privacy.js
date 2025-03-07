@@ -70,8 +70,8 @@ const PrivacyPolicy = () => {
       <Text style={[styles.paragraph, { color: theme === "dark" ? "#fff" : "#000" }]}>
         If you have any questions about this Privacy Policy, You can contact us:
       </Text>
-      <Text style={[styles.bold, { color: theme === "dark" ? "#fff" : "#000" }]}>By email:</Text>
-      <Text style={[styles.link, { color: theme === "dark" ? "#fff" : "#000" }]}>support@insighthub.com.ng</Text>
+      <Text style={[styles.bold, { color: theme === "dark" ? "#fff" : "#000"}]}>By email:</Text>
+      <Text style={[styles.link, { color: theme === "dark" ? "#fff" : "#000",    paddingBottom:50  }]}>support@insighthub.com.ng</Text>
     </ScrollView>
   );
 };
@@ -82,6 +82,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     padding: 20,
     paddingTop:getStatusBarHeight(),
+
   },
   lightContainer: { backgroundColor: "#fff" },
   darkContainer: { backgroundColor: "#121212" },

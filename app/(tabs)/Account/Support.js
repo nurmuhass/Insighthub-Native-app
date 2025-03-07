@@ -7,15 +7,15 @@ import { getStatusBarHeight } from "react-native-status-bar-height";
 import React, { useContext,useEffect, useState } from 'react';
 import { ThemeContext } from "../../../ThemeContext"
 
-const SupportScreen = () => {
+const SupportScreen = () => { 
   const router = useRouter();
       const { theme, toggleTheme } = useContext(ThemeContext);
   const openWhatsApp = () => {
-    Linking.openURL("https://wa.me/234XXXXXXXXXX"); // Replace with your WhatsApp number
+    Linking.openURL("https://wa.link/9tj168");
   };
 
   const openWhatsAppGroup = () => {
-    Linking.openURL("https://chat.whatsapp.com/XXXXXXXXXXX"); // Replace with your group link
+    Linking.openURL("https://chat.whatsapp.com/HltRBAkcRfrHTgITjDdjjD"); 
   };
 
   const openWebsite = () => {

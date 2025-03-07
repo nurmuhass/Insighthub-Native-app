@@ -167,7 +167,7 @@ const LockScreen = () => {
       {/* Avatar */}
       <View style={styles.avatarContainer}>
         <Image 
-          source={require("../../images/Profilepic.png")} 
+          source={require("../../images/avatar.jpg")} 
           style={styles.avatar} 
         />
       </View>

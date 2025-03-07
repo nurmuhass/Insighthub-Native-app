@@ -9,12 +9,14 @@ import {
   Image, 
   StatusBar, 
   StyleSheet, 
-  Alert 
+  Alert, 
+  RefreshControl 
 } from 'react-native';
 import { getStatusBarHeight } from 'react-native-status-bar-height';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ThemeContext } from "../../../ThemeContext"; 
+import { ActivityIndicator } from 'react-native';
 
 const TransactionsScreen = () => {
   const router = useRouter();
@@ -26,7 +28,10 @@ const TransactionsScreen = () => {
   const [selectedService, setSelectedService] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
   const { theme, toggleTheme } = useContext(ThemeContext);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false); // New state for pull-to-refresh
 
+  // Dummy transactions data for fallback
   const DummytransactionsData = {
     "Buy Data": [
     ],
@@ -47,70 +52,75 @@ const TransactionsScreen = () => {
   };
 
   // Fetch real-time transactions on mount
-  useEffect(() => {
-    const loadAndFetchTransactions = async () => {
-      try {
-        const token = await AsyncStorage.getItem("token");
-        if (!token) {
-          Alert.alert("Error", "No access token found");
+  const loadAndFetchTransactions = async () => {
+    try {
+      const token = await AsyncStorage.getItem("token");
+      if (!token) {
+        Alert.alert("Error", "No access token found");
+        return;
+      }
+      
+      const rawApiResponse = await AsyncStorage.getItem("rawApiResponse");
+      let userId = null;
+      if (rawApiResponse) {
+        const parsedResponse = JSON.parse(rawApiResponse);
+        userId = parsedResponse.sId;
+        setSId(userId);
+      } else {
+        console.log("rawApiResponse not found in storage; sId remains null");
+      }
+      
+      if (userId) {
+        const url = `https://insighthub.com.ng/api/user/GetTransactions.php?userId=${userId}&limit=200`;
+        const response = await fetch(url, {
+          method: "GET",
+          headers: {
+            "Accept": "application/json",
+            "Authorization": `Token ${token}`
+          }
+        });
+        const responseText = await response.text();
+        
+        let json;
+        try {
+          json = JSON.parse(responseText);
+        } catch (e) { 
+          console.error("Error parsing JSON:", e);
           return;
         }
         
-        // Retrieve user ID from rawApiResponse
-        const rawApiResponse = await AsyncStorage.getItem("rawApiResponse");
-        let userId = null;
-        if (rawApiResponse) {
-          const parsedResponse = JSON.parse(rawApiResponse);
-          userId = parsedResponse.sId;
-          setSId(userId);
+        if (json.status === "success") {
+          setTransactions(json.transactions || []);
+          setLoading(false);
+          
+          const services = [...new Set((json.transactions || []).map(tx => tx.servicename))];
+          if (services.length > 0) {
+            setSelectedService(services[0]);
+          }
         } else {
-          console.log("rawApiResponse not found in storage; sId remains null");
+          Alert.alert("Error", json.msg || "Failed to load transactions");
         }
-        
-        if (userId) {
-          const url = `https://insighthub.com.ng/api/user/GetTransactions.php?userId=${userId}&limit=100`;
-          const response = await fetch(url, {
-            method: "GET",
-            headers: {
-              "Accept": "application/json",
-              "Authorization": `Token ${token}`
-            }
-          });
-          console.log("Response status:", response.status);
-          const responseText = await response.text();
-          console.log("Response text:", responseText);
-          
-          let json;
-          try {
-            json = JSON.parse(responseText);
-          } catch (e) {
-            console.error("Error parsing JSON:", e);
-            return;
-          }
-          
-          console.log("Raw API Response:", json);
-          if (json.status === "success") {
-            setTransactions(json.transactions || []);
-            // Extract unique service names from transactions
-            const services = [...new Set((json.transactions || []).map(tx => tx.servicename))];
-            // Set default selected service as the first one (if available)
-            if (services.length > 0) {
-              setSelectedService(services[0]);
-            }
-          } else {
-            Alert.alert("Error", json.msg || "Failed to load transactions");
-          }
-        }
-      } catch (error) {
-        console.error("Error loading sId and fetching transactions:", error);
-        Alert.alert("Error", "An error occurred while fetching transactions");
       }
-    };
+    } catch (error) {
+      console.error("Error loading sId and fetching transactions:", error);
+      setLoading(false);
+      Alert.alert("Error", "An error occurred while fetching transactions. Check your network and try again.");
+    }
+  };
 
+  // Call loadAndFetchTransactions on component mount
+  useEffect(() => {
     loadAndFetchTransactions();
   }, []);
 
-  // Filter transactions by selected service and search text
+  // Pull-to-refresh logic
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await loadAndFetchTransactions();  // Re-fetch data
+    setRefreshing(false);
+  };
+
+  // Filter transactions based on search text and selected service
   const filteredTransactions = transactions.filter(item => {
     const serviceMatch = selectedService ? (item.servicename === selectedService) : true;
     const searchMatch = item.servicedesc.toLowerCase().includes(searchText.toLowerCase());
@@ -118,8 +128,16 @@ const TransactionsScreen = () => {
   });
 
   const serviceOptions = transactions.length > 0 
-  ? [...new Set(transactions.map(item => item.servicename))] 
-  : Object.keys(DummytransactionsData);
+    ? [...new Set(transactions.map(item => item.servicename))] 
+    : Object.keys(DummytransactionsData);
+
+  if (loading) {
+    return (
+      <View style={{flex:1,justifyContent:'center',alignItems:'center',backgroundColor: theme === "dark" ? "#000" : "#fff"}}>
+        <ActivityIndicator size="large" color="#7734eb" />
+      </View>
+    );
+  }
 
   return (
     <View style={[styles.container, theme === "dark" ? styles.darkContainer : styles.lightContainer]}>
@@ -149,13 +167,15 @@ const TransactionsScreen = () => {
    <FlatList
           data={filteredTransactions}
           keyExtractor={(item) => item.transref}
+          contentContainerStyle={{ paddingBottom: 20 }}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
           ListEmptyComponent={() => (
             <View style={{ alignItems: "center", marginTop: 50 }}>
               <Image source={{ uri: "https://via.placeholder.com/100" }} style={{ width: 100, height: 100 }} />
               <Text style={{ marginTop: 10, fontSize: 16, color: "#888" }}>No transactions found.</Text>
             </View> 
           )}
-          renderItem={({ item }) => (   
+          renderItem={({ item }) => (
 <TouchableOpacity
   onPress={() => {
     if (["Airtime", "Data"].includes(item.servicename)) {

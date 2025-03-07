@@ -16,6 +16,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import ReAuthModalWrapper from '../../../components/ReAuthModalWrapper';
 import { ThemeContext } from "../../../ThemeContext"; 
+import { getStatusBarHeight } from 'react-native-status-bar-height';
+import { Ionicons } from '@expo/vector-icons';
 
 // Helper function to generate a transaction reference
 const generateTransRef = () => "EXAMPIN" + Date.now();
@@ -170,8 +172,15 @@ const BuyExamPin = () => {
 
   return (
     <ScrollView style={[styles.container, theme === "dark" ? styles.darkContainer : styles.lightContainer]}>
-      <Text style={[styles.header, { color: theme === "dark" ? "#fff" : "#000" }]}>Purchase Exam Pin</Text>
       
+      <View style={{ flexDirection: 'row', alignItems: 'center',marginBottom:20 }}>
+            <TouchableOpacity onPress={() => router.back()} style={{   }}>
+              <Ionicons name="arrow-back" size={24} color={theme === "dark" ? "#fff" : "#000"}/>
+            </TouchableOpacity>
+         
+            <Text style={[styles.header, { color: theme === "dark" ? "#fff" : "#000" }]}>Purchase Exam Pin</Text>    
+ </View>
+
       {/* Exam Provider Picker */}
       <Text style={[styles.label, { color: theme === "dark" ? "#fff" : "#000" }]}>Select Exam Provider</Text>
       <View style={styles.pickerContainer}>
@@ -228,10 +237,10 @@ const BuyExamPin = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: "#fff" },
+  container: { flex: 1, padding: 20, backgroundColor: "#fff" ,paddingTop:getStatusBarHeight()},
   lightContainer: { backgroundColor: "#fff" },
   darkContainer: { backgroundColor: "#121212" },
-  header: { fontSize: 24, fontWeight: "bold", textAlign: "center", marginBottom: 20, color: "#7734eb" },
+  header: { fontSize: 24, fontWeight: "bold", textAlign: "center", marginLeft: 10, color: "#7734eb" },
   label: { fontSize: 16, fontWeight: "bold", marginBottom: 5, color: "#333" },
   pickerContainer: { borderWidth: 1, borderColor: "#ccc", borderRadius: 8, marginBottom: 15 },
   picker: { height: 50, width: "100%" },

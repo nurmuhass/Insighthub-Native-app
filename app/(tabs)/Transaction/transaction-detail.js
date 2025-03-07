@@ -99,7 +99,7 @@ export default function TransactionDetailScreen() {
             <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
               <Ionicons name="arrow-back" size={24} color={theme === "dark" ? "#fff" : "#000"}/>
             </TouchableOpacity>
-            <Text style={[styles.headerTitle, { color: theme === "dark" ? "#fff" : "#7734eb" }]}>Transaction Details</Text>
+            <Text style={[styles.headerTitle, { color: theme === "dark" ? "#fff" : "#000" }]}>Transaction Details</Text>
           </View>
 
           {/* Share Button */}
@@ -125,32 +125,32 @@ export default function TransactionDetailScreen() {
    )}
             <Image source={require("../../../images/logo.png")} style={styles.providerLogo} />
           </View>
-          <Text style={[styles.summaryText, { color: theme === "dark" ? "#fff" : "#7734eb" }]}>
+          <Text style={[styles.summaryText, { color: theme === "dark" ? "#fff" : "#000" }]}>
           {transactionData.servicedesc}{"\n"}
           </Text>
         </View>
 
         {/* Transaction Details */}
         <View style={styles.detailsContainer}>
-          <Text style={[styles.sectionTitle, { color: theme === "dark" ? "#fff" : "#7734eb" }]}>Transaction Information</Text>
+          <Text style={[styles.sectionTitle, { color: theme === "dark" ? "#fff" : "#000" }]}>Transaction Information</Text>
           <View style={styles.detailRow}>
-            <Text style={[styles.detailLabel, { color: theme === "dark" ? "#fff" : "#7734eb" }]}>Transaction ID:</Text>
-            <Text style={[styles.detailValue, { color: theme === "dark" ? "#fff" : "#7734eb" }]}>{transactionData.transref}</Text>
+            <Text style={[styles.detailLabel, { color: theme === "dark" ? "#fff" : "#000" }]}>Transaction ID:</Text>
+            <Text style={[styles.detailValue, { color: theme === "dark" ? "#fff" : "#000" }]}>{transactionData.transref}</Text>
           </View>
           <View style={styles.detailRow}>
-            <Text style={[styles.detailLabel, { color: theme === "dark" ? "#fff" : "#7734eb" }]}>Status:</Text>
+            <Text style={[styles.detailLabel, { color: theme === "dark" ? "#fff" : "#000" }]}>Status:</Text>
             <Text style={[styles.detailValue, { color: transactionData.status === '0' ? 'green' : 'red' }]}>
               {transactionData.status === '0' ? 'Success' : 'Failed'}
             </Text>
           </View>
           <View style={styles.detailRow}>
-            <Text style={[styles.detailLabel, { color: theme === "dark" ? "#fff" : "#7734eb" }]}>Phone:</Text>
-            <Text style={[styles.detailValue, { color: theme === "dark" ? "#fff" : "#7734eb" }]}>{transactionData.phone}</Text>
+            <Text style={[styles.detailLabel, { color: theme === "dark" ? "#fff" : "#000" }]}>Phone:</Text>
+            <Text style={[styles.detailValue, { color: theme === "dark" ? "#fff" : "#000" }]}>{transactionData.phone}</Text>
           </View>
           <View style={styles.detailRow}>
-            <Text style={[styles.detailLabel, { color: theme === "dark" ? "#fff" : "#7734eb" }]}>Provider:</Text>
+            <Text style={[styles.detailLabel, { color: theme === "dark" ? "#fff" : "#000" }]}>Provider:</Text>
          
-             <Text style={[styles.detailValue, { color: theme === "dark" ? "#fff" : "#7734eb" }]}> { transactionData.servicedesc && transactionData.servicedesc.toUpperCase().includes('AIRTEL') && (
+             <Text style={[styles.detailValue, { color: theme === "dark" ? "#fff" : "#000" }]}> { transactionData.servicedesc && transactionData.servicedesc.toUpperCase().includes('AIRTEL') && (
             'Airtel'
             )}
             { transactionData.servicedesc && transactionData.servicedesc.toUpperCase().includes('MTN') && (
@@ -167,16 +167,16 @@ export default function TransactionDetailScreen() {
             )}</Text>
           </View>
           <View style={styles.detailRow}>
-            <Text style={[styles.detailLabel, { color: theme === "dark" ? "#fff" : "#7734eb" }]}>Description:</Text>
-            <Text style={{width:'70%',marginLeft:25,marginRight:5,color: theme === "dark" ? "#fff" : "#7734eb" }} numberOfLines={4}>{transactionData.servicedesc}</Text>
+            <Text style={[styles.detailLabel, { color: theme === "dark" ? "#fff" : "#000" }]}>Description:</Text>
+            <Text style={{width:'70%',marginLeft:25,marginRight:5,color: theme === "dark" ? "#fff" : "#000" }} numberOfLines={4}>{transactionData.servicedesc}</Text>
           </View>
           <View style={styles.detailRow}>
-            <Text style={[styles.detailLabel, { color: theme === "dark" ? "#fff" : "#7734eb" }]}>Amount:</Text>
-            <Text style={[styles.detailValue, { color: theme === "dark" ? "#fff" : "#7734eb" }]}>₦ {transactionData.amount}</Text>
+            <Text style={[styles.detailLabel, { color: theme === "dark" ? "#fff" : "#000" }]}>Amount:</Text>
+            <Text style={[styles.detailValue, { color: theme === "dark" ? "#fff" : "#000" }]}>₦ {transactionData.amount}</Text>
           </View>
           <View style={styles.detailRow}>
-            <Text style={[styles.detailLabel, { color: theme === "dark" ? "#fff" : "#7734eb" }]}>Date:</Text>
-            <Text style={[styles.detailValue, { color: theme === "dark" ? "#fff" : "#7734eb" }]}>{transactionData.date}</Text>
+            <Text style={[styles.detailLabel, { color: theme === "dark" ? "#fff" : "#000" }]}>Date:</Text>
+            <Text style={[styles.detailValue, { color: theme === "dark" ? "#fff" : "#000" }]}>{transactionData.date}</Text>
           </View>
         </View>
       </ScrollView>

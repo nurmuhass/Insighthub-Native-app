@@ -119,7 +119,7 @@ const FundWallet = () => {
     <Text style={[styles.accountNo, { color: theme === "dark" ? "#fff" : "#000" }]}>Account No: {bank.account_no}</Text>
     <Text style={[styles.note, { color: theme === "dark" ? "#fff" : "#000" }]}>Note: Automated bank transfer attracts additional charges of {bank.charges} only.</Text>
     <TouchableOpacity style={styles.copyButton} onPress={() => copyToClipboard(bank.account_no)}>
-      <Text style={[styles.copyButtonText, { color: theme === "dark" ? "#fff" : "#000" }]}>Copy Account No</Text>
+      <Text style={[styles.copyButtonText, { color: theme === "dark" ? "#fff" : "#fff" }]}>Copy Account No</Text>
     </TouchableOpacity>
   </View>
 ))}

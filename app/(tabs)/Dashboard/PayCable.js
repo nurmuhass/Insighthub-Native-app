@@ -16,6 +16,8 @@ import { Picker } from "@react-native-picker/picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { ThemeContext } from "../../../ThemeContext"; 
+import { Ionicons } from "@expo/vector-icons";
+import { getStatusBarHeight } from "react-native-status-bar-height";
 
 // Helper function to generate a transaction reference
 const generateTransRef = () => "CABLE" + Date.now();
@@ -181,8 +183,17 @@ const BuyCable = () => {
 
   return (
     <ScrollView style={[styles.container, theme === "dark" ? styles.darkContainer : styles.lightContainer]}>
-      <Text style={[styles.header, { color: theme === "dark" ? "#fff" : "#000" }]}>Cable Subscription</Text>
+    
       
+      <View style={{ flexDirection: 'row', alignItems: 'center',marginBottom:20 }}>
+            <TouchableOpacity onPress={() => router.back()} style={{   }}>
+              <Ionicons name="arrow-back" size={24} color={theme === "dark" ? "#fff" : "#000"}/>
+            </TouchableOpacity>
+         
+            <Text style={[styles.header, { color: theme === "dark" ? "#fff" : "#000" }]}>Cable Subscription</Text>    
+ </View>
+
+
       {/* Cable Provider Picker */}
       <Text style={[styles.labelText, { color: theme === "dark" ? "#fff" : "#000" }]}>Select Cable Provider</Text>
       <View style={[styles.pickerContainer, { color: theme === "dark" ? "#fff" : "#000" }]}>
@@ -286,10 +297,10 @@ const BuyCable = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff", padding: 20 },
+  container: { flex: 1, backgroundColor: "#fff", padding: 20 ,paddingTop:getStatusBarHeight()},
   lightContainer: { backgroundColor: "#fff" },
   darkContainer: { backgroundColor: "#121212" },
-  header: { fontSize: 24, fontWeight: "bold", textAlign: "center", marginBottom: 20, color: "#7734eb" },
+  header: { fontSize: 24, fontWeight: "bold", textAlign: "center", marginLeft: 10, color: "#7734eb" },
   labelText: { fontSize: 16, fontWeight: "bold", marginBottom: 5, color: "#333" },
   pickerContainer: { borderWidth: 1, borderColor: "#ccc", borderRadius: 8, marginBottom: 15 },
   picker: { height: 50, width: "100%" },

@@ -67,10 +67,10 @@ const personalinfo = () => {
 </View>
      
      <View style={{marginTop:40}}>
-      <Text style={[styles.header, { color: theme === "dark" ? "#fff" : "#7734eb" }]}>First Name</Text>
+      <Text style={[styles.header, { color: theme === "dark" ? "#fff" : "#000" }]}>First Name</Text>
         <TextInput 
         style={{ borderWidth: 1, borderColor: "#ccc", padding: 10, borderRadius: 5,
-             marginTop: 3 ,width:'94%',alignSelf:'center',height:50,color: theme === "dark" ? "#fff" : "#7734eb" }}
+             marginTop: 3 ,width:'94%',alignSelf:'center',height:50,color: theme === "dark" ? "#fff" : "#000" }}
         placeholder="Enter Full Name"
         keyboardType="ascii-capable"
         value={profile.sFname}
@@ -78,17 +78,17 @@ const personalinfo = () => {
         />
 
 
-<Text style={[styles.header, { color: theme === "dark" ? "#fff" : "#7734eb" }]}>Last Name</Text>
+<Text style={[styles.header, { color: theme === "dark" ? "#fff" : "#000" }]}>Last Name</Text>
 <TextInput 
         style={{ borderWidth: 1, borderColor: "#ccc", padding: 10, borderRadius: 5,
-             marginTop: 5 ,width:'94%',alignSelf:'center',marginTop:10,height:50,color: theme === "dark" ? "#fff" : "#7734eb"}}
+             marginTop: 5 ,width:'94%',alignSelf:'center',marginTop:10,height:50,color: theme === "dark" ? "#fff" : "#000"}}
         placeholder="Enter phone"
         keyboardType="ascii-capable"
         value={profile.sLname}
         editable={false}  // This disables the TextInput
         />
 
-<Text style={[styles.header, { color: theme === "dark" ? "#fff" : "#7734eb" }]}>Email</Text>
+<Text style={[styles.header, { color: theme === "dark" ? "#fff" : "#000" }]}>Email</Text>
 <TextInput  
   style={{
     borderWidth: 1,
@@ -99,7 +99,7 @@ const personalinfo = () => {
     alignSelf: 'center',
     marginTop: 10,
     height: 50
-    ,color: theme === "dark" ? "#fff" : "#7734eb"
+    ,color: theme === "dark" ? "#fff" : "#000"
   }}
   placeholder="Enter Address"
   keyboardType="ascii-capable"
@@ -108,7 +108,7 @@ const personalinfo = () => {
 />
 
 
-<Text style={[styles.header, { color: theme === "dark" ? "#fff" : "#7734eb" }]}>Phone</Text>
+<Text style={[styles.header, { color: theme === "dark" ? "#fff" : "#000" }]}>Phone</Text>
 <TextInput  
   style={{
     borderWidth: 1,
@@ -118,7 +118,7 @@ const personalinfo = () => {
     width: '94%',
     alignSelf: 'center',
     marginTop: 10,
-    height: 50,color: theme === "dark" ? "#fff" : "#7734eb"
+    height: 50,color: theme === "dark" ? "#fff" : "#000"
   }}
   placeholder="Enter Address"
   keyboardType="ascii-capable"
@@ -126,7 +126,7 @@ const personalinfo = () => {
   editable={false}  // This disables the TextInput
 />
 
-<Text style={[styles.header, { color: theme === "dark" ? "#fff" : "#7734eb" }]}>Email</Text>
+<Text style={[styles.header, { color: theme === "dark" ? "#fff" : "#000" }]}>Email</Text>
 <TextInput  
   style={{
     borderWidth: 1,
@@ -136,7 +136,7 @@ const personalinfo = () => {
     width: '94%',
     alignSelf: 'center',
     marginTop: 10,
-    height: 50,color: theme === "dark" ? "#fff" : "#7734eb"
+    height: 50,color: theme === "dark" ? "#fff" : "#000"
   }}
   placeholder="Enter Address"
   keyboardType="ascii-capable"

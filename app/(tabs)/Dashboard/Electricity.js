@@ -16,6 +16,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import ReAuthModalWrapper from '../../../components/ReAuthModalWrapper';
 import { ThemeContext } from "../../../ThemeContext"; 
+import { Ionicons } from '@expo/vector-icons';
 
 const ElectricityScreen = () => {
   const router = useRouter();
@@ -162,8 +163,16 @@ const ElectricityScreen = () => {
 
   return (
     <ScrollView style={[styles.container, theme === "dark" ? styles.darkContainer : styles.lightContainer]}>
-      <Text style={[styles.header, { color: theme === "dark" ? "#fff" : "#000" }]}>Electricity Purchase</Text>
+     
       
+  <View style={{ flexDirection: 'row', alignItems: 'center',marginBottom:20 }}>
+            <TouchableOpacity onPress={() => router.back()} style={{   }}>
+              <Ionicons name="arrow-back" size={24} color={theme === "dark" ? "#fff" : "#000"}/>
+            </TouchableOpacity>
+         
+            <Text style={[styles.header, { color: theme === "dark" ? "#fff" : "#000" }]}>Electricity Purchase</Text>    
+ </View>
+
       {/* Provider Picker */}
       <Text style={[styles.subHeader, { color: theme === "dark" ? "#fff" : "#000" }]}>Select Provider</Text>
       <View style={[styles.pickerContainer, { color: theme === "dark" ? "#fff" : "#000" }]}>
@@ -246,19 +255,19 @@ const ElectricityScreen = () => {
         {loading ? (
           <ActivityIndicator color="#fff" />
         ) : (
-          <Text style={[styles.buttonText, { color: theme === "dark" ? "#fff" : "#000" }]}>Continue</Text>
+          <Text style={[styles.buttonText, { color: theme === "dark" ? "#fff" : "#fff" }]}>Continue</Text>
         )}
       </TouchableOpacity>
 
     </ScrollView>
   );
-};
-
+}; 
+// cannot convert null value to object
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 20, backgroundColor: "#fff" },
   lightContainer: { backgroundColor: "#fff" },
   darkContainer: { backgroundColor: "#121212" },
-  header: { fontSize: 24, fontWeight: "bold", textAlign: "center", marginBottom: 15, color: "#7734eb" },
+  header: { fontSize: 24, fontWeight: "bold", textAlign: "center", marginLeft: 15, color: "#7734eb" },
   subHeader: { fontSize: 16, marginTop: 10, marginBottom: 5, fontWeight: "bold", color: "#333" },
   pickerContainer: { borderWidth: 1, borderColor: "#ccc", borderRadius: 8, marginBottom: 15 },
   picker: { height: 50, width: "100%" },

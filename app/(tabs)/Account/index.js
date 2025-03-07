@@ -1,3 +1,4 @@
+// Account.js
 import React, { useContext, useEffect, useState } from "react";
 import { View, Text, StyleSheet, ActivityIndicator, Image, ScrollView, TouchableOpacity, StatusBar } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -19,7 +20,7 @@ const ProfileScreen = () => {
     { id: 4, name: "My Referral", description: "Referrals, commission", icon: "people-outline", route: "Dashboard/Referral" },
     { id: 5, name: "Dark Mode", description: "Toggle Dark Mode", icon: "moon-outline", action: toggleTheme }, // Toggle Theme
     { id: 6, name: "Help & Support", description: "Help or contact support", icon: "help-circle-outline", route: "Account/Support" },
-    { id: 7, name: "Legal", description: "Help, Privacy & Security, Legal", icon: "document-text-outline", route: "Account/Privacy" },
+    { id: 7, name: "Privacy Policy", description: "Help, Privacy & Security, Legal", icon: "document-text-outline", route: "Account/Privacy" },
     { id: 8, name: "Logout", description: "Sign out of your account", icon: "log-out-outline", action: toggleTheme, color: "red" }, // Logout Button
   ];
 
@@ -57,7 +58,7 @@ const ProfileScreen = () => {
 
   if (!profile) {
     return (
-      <View style={styles.center}>
+      <View style={[styles.center,{backgroundColor: theme === "dark" ? "#000" : "#fff"}]}>
         <Text>Error loading profile.</Text>
         <TouchableOpacity onPress={handleLogout}>
           <Icon name="log-out-outline" type="ionicon" color="red" size={24} />
@@ -72,14 +73,14 @@ const ProfileScreen = () => {
       <StatusBar translucent barStyle={theme === "dark" ? "light-content" : "dark-content"} backgroundColor="transparent" />
       <View style={styles.headerContainer}>
         <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} color={theme === "dark" ? "#fff" : "#7734eb"} />
+          <Ionicons name="arrow-back" size={24} color={theme === "dark" ? "#fff" : "#000"} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: theme === "dark" ? "#fff" : "#000" }]}>Profile</Text>
       </View>
 
       <View style={styles.header}>
-        <Image source={require("../../../images/Profilepic.png")} style={styles.profileImage} />
-        <Text style={[styles.userName, { color: theme === "dark" ? "#fff" : "#000" }]}>{profile.sFname} {profile.sLname}</Text>
+        <Image source={require("../../../images/avatar.jpg")} style={styles.profileImage} />
+        <Text style={[styles.userName, { color: theme === "dark" ? "#fff" : "#7734eb" }]}>{profile.sFname} {profile.sLname}</Text>
       </View>
 
       <ScrollView style={styles.menuContainer}>
@@ -99,7 +100,7 @@ const ProfileScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
+  container: { flex: 1 ,paddingTop:getStatusBarHeight()},
   lightContainer: { backgroundColor: "#fff" },
   darkContainer: { backgroundColor: "#121212" },
   headerContainer: { flexDirection: "row", alignItems: "center", padding: 10 },

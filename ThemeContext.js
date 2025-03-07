@@ -13,11 +13,13 @@ export const ThemeProvider = ({ children }) => {
       if (storedTheme) {
         setTheme(storedTheme);
       } else {
-        setTheme(Appearance.getColorScheme() || "light");
+        // Explicitly set to "light" if no theme is stored in AsyncStorage
+        setTheme("light");
       }
     };
     loadTheme();
   }, []);
+  
 
   const toggleTheme = async () => {
     const newTheme = theme === "light" ? "dark" : "light";

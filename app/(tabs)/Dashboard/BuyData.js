@@ -18,7 +18,7 @@ import { Picker } from "@react-native-picker/picker";
 import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import ReAuthModalWrapper from "../../../components/ReAuthModalWrapper";
-import { MaterialIcons } from "@expo/vector-icons";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import * as Contacts from 'expo-contacts';
 import { ThemeContext } from "../../../ThemeContext"; 
 import { getStatusBarHeight } from "react-native-status-bar-height";
@@ -288,8 +288,14 @@ const [modalVisible, setModalVisible] = useState(false);
   
   return (
     <ScrollView style={[styles.container, theme === "dark" ? styles.darkContainer : styles.lightContainer]}>
-      <Text style={styles.header}>Buy Data</Text>
-      
+     
+      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <TouchableOpacity onPress={() => router.back()} style={{   }}>
+              <Ionicons name="arrow-back" size={24} color={theme === "dark" ? "#fff" : "#000"}/>
+            </TouchableOpacity>
+         
+            <Text style={[styles.header, { color: theme === "dark" ? "#fff" : "#000" }]}>Buy Data</Text>    
+ </View>
       {/* Select Network */}
       <Text style={[styles.subHeader, { color: theme === "dark" ? "#fff" : "#000" }]}>Select Network</Text>
       <View style={styles.pickerContainer}>
@@ -432,7 +438,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, paddingTop: getStatusBarHeight(),paddingHorizontal:15,  backgroundColor: "#fff" },
   lightContainer: { backgroundColor: "#fff" },
   darkContainer: { backgroundColor: "#121212" },
-  header: { fontSize: 24, fontWeight: "bold", textAlign: "center", marginBottom: 10, color: "#7734eb" },
+  header: { fontSize: 24, fontWeight: "bold", textAlign: "center", marginLeft: 10, color: "#7734eb" },
   subHeader: { fontSize: 16, marginTop: 10, marginBottom: 5, fontWeight: "bold", color: "#333" },
   pickerContainer: { borderWidth: 1, borderColor: "#ccc", borderRadius: 8, marginBottom: 15 },
   picker: { height: 50, width: "100%" },

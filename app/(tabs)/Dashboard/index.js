@@ -1,4 +1,4 @@
-import { View, Text, Image, TouchableOpacity,ToastAndroid, Platform, Alert, FlatList, StyleSheet, Modal, ActivityIndicator } from 'react-native'
+import { View, Text, Image, TouchableOpacity,ToastAndroid, Platform, Alert, FlatList, StyleSheet, Modal, ActivityIndicator, TouchableWithoutFeedback } from 'react-native'
 import React, { useContext,useEffect, useState } from 'react'
 import { StatusBar } from 'expo-status-bar'
 import { getStatusBarHeight } from "react-native-status-bar-height";
@@ -11,6 +11,7 @@ import * as Clipboard from "expo-clipboard";
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ThemeContext } from "../../../ThemeContext"; 
+import NetInfo from '@react-native-community/netinfo';
 
 const API_URL = "https://insighthub.com.ng/api/user/fundWallet.php";
 
@@ -24,7 +25,7 @@ const index = () => {
       const { theme, toggleTheme } = useContext(ThemeContext);
   // Define two sets of data
   
-  useEffect(() => {
+
     const fetchProfile = async () => {
       try {
         const token = await AsyncStorage.getItem('token');
@@ -62,52 +63,38 @@ const index = () => {
         if (!json || json.status === "fail") {
           console.error('Error:', json ? json.msg : "No data returned");
           setProfile(null);
+          return;
         } else {
           // Remove the status field and use the remaining keys as profile data.
           const { status, ...profileData } = json;
           setProfile(profileData);
         }
       } catch (error) {
-        console.error("Error fetching profile:", error);
+        // console.error("Error fetching profile:", error);
       } finally {
         setLoading(false);
       }
     };
   
-    fetchProfile();
-  }, []);
+    useEffect(() => {
+      // Initial fetch when component mounts
+      fetchProfile();
+  
+      // Set an interval to call fetchProfile every 10 seconds for real-time updates
+      const intervalId = setInterval(() => {
+        fetchProfile();
+      }, 10000); // 10 seconds
+  
+      // Clear the interval when component unmounts
+      return () => clearInterval(intervalId);
+    }, []); // Empty dependency array to run this effect once on mount
+  
 
   
-  useEffect(() => {
-    const loadAndFetchProfile = async () => {
-      try {
-
-        const token = await AsyncStorage.getItem("token");
-        if (!token) {
-          Alert.alert("Error", "No access token found");
-          return;
-        }
-
-        const rawApiResponse = await AsyncStorage.getItem("rawApiResponse");
-        if (rawApiResponse) {
-          const parsedResponse = JSON.parse(rawApiResponse);     
-          setUserId(parsedResponse.sId);
-        
-        } else {
-          console.log("rawApiResponse not found in storage.");
-        }
-      } catch (error) {
-        console.error("Error loading profile:", error);
-        Alert.alert("Error", "An error occurred while fetching transactions");
-      }
-    };
-  
-    loadAndFetchProfile();
-  }, []);
-
   useEffect(() => {
     const fetchWalletDetails = async () => {
-      if (!userId) return; // Ensure userId is available before making API call
+   
+      if (!userId || userId === "1")  return; // Ensure userId is available before making API call
 
       try {
         const token = await AsyncStorage.getItem("token");
@@ -136,11 +123,11 @@ const index = () => {
         if (result.status === "success") {
           setWalletData(result.wallet_details);
         } else {
-          Alert.alert("Error", result.msg || "Failed to load data.");
+
         }
       } catch (error) {
         console.error("Error fetching wallet details:", error);
-        Alert.alert("Error", "An error occurred while fetching wallet details.");
+
       } finally {
         setLoading(false);
       }
@@ -149,9 +136,40 @@ const index = () => {
     fetchWalletDetails();
   }, [userId]); // Re-fetch when userId changes
 
+  
+  useEffect(() => {
+    const loadAndFetchProfile = async () => {
+      try {
+
+        const token = await AsyncStorage.getItem("token");
+        if (!token) {
+          Alert.alert("Error", "No access token found");
+          return;
+        }
+
+        const rawApiResponse = await AsyncStorage.getItem("rawApiResponse");
+        if (rawApiResponse) {
+          try {
+            const parsedResponse = JSON.parse(rawApiResponse);
+            if (parsedResponse && parsedResponse.sId) {
+              setUserId(parsedResponse.sId);
+            }
+          } catch (e) {
+            console.error("Error parsing rawApiResponse:", e);
+          }
+        }
+      } catch (error) {
+        console.error("Error loading profile:", error);
+        Alert.alert("Error", "An error occurred while fetching transactions");
+      }
+    };
+  
+    loadAndFetchProfile();
+  }, []);
+
   // Copy account number to clipboard
   const copyToClipboard = () => {
-    if (walletData && walletData[index]) {
+    if (Array.isArray(walletData) && walletData.length > index) {
       const accountNumber = walletData[index].account_no;
       Alert.alert("Copied", `Account number ${accountNumber} copied!`);
     }
@@ -177,7 +195,22 @@ const index = () => {
     }
   };
 
+  const [isConnected, setIsConnected] = useState(null);
+  
+  useEffect(() => {
+    // Check the network status when the component mounts
+    const unsubscribe = NetInfo.addEventListener((state) => {
+      setIsConnected(state.isConnected); // Updates the state with the connection status
+    });
 
+    // Cleanup the event listener when the component unmounts
+    return () => unsubscribe();
+  }, []);
+
+ 
+  // Show the connection status in the UI
+
+  
   
 
   const [showBalance, setShowBalance] = useState(false);
@@ -199,17 +232,38 @@ const moreServices = [
   { id: 3, name: "Electricity", icon: <MaterialIcons name="lightbulb-outline" size={30} color='#7734eb' />, route: "Dashboard/Electricity" },
   { id: 4, name: "Cable Tv", icon: <MaterialIcons name="live-tv" size={30}color='#7734eb' />, route: "Dashboard/PayCable"},
   { id: 5, name: "Edu Pins", icon: <FontAwesome5 name="book-open" size={30} color='#7734eb'/> , route: "Dashboard/EduPin"},
-  { id: 6, name: "Bulk SMS", icon: <FontAwesome5 name="sms" size={30} color='#7734eb' /> },
-  { id: 7, name: "Recharge Pin", icon: <FontAwesome5 name="credit-card" size={30} color='#7734eb' /> ,route: "Dashboard/RechargeCard"},
+  { id: 6, name: "Bulk SMS", icon: <FontAwesome5 name="sms" size={30} color='#7734eb' /> , route: "Dashboard/AirtimeSwap"},
+  { id: 7, name: "Recharge Pin", icon: <FontAwesome5 name="credit-card" size={30} color='#7734eb' /> ,route: "Dashboard/BuyAirtime"},
   { id: 8, name: "Airtime Swap", icon: <FontAwesome5 name="exchange-alt" size={30} color='#7734eb' /> , route: "Dashboard/AirtimeSwap" },
 ];
   const [modalVisible, setModalVisible] = useState(false);
 
 
+  if (!isConnected) {
+    return (
+      <View style={{ flex: 1,paddingTop:getStatusBarHeight(),backgroundColor:'#fff'}}>
+  <View style={{ justifyContent:'space-between',flexDirection:'row',marginBottom:30}}>
+      
+      <View style={{flexDirection:'row',justifyContent:'center'}}>
+       <Image source={require("../../../images/logo.png")} style={{width:50,height:50,marginTop:13,marginLeft:5}}/>
+
+    </View>
+    <Text style={{fontSize:28,fontWeight:'bold',marginTop:17,marginRight:15}}>InsightHub</Text>
+  
+  </View>  
+      <View style={styles.noConnectionContainer}>
+        <Entypo name="network" size={72} color="black" />
+        <Text style={styles.noConnectionText}>Please check your internet connection.</Text>
+      </View>
+
+      </View>
+
+    );
+  }
 
     if (loading) {
       return (
-        <View style={styles.center}>
+        <View style={{flex:1,justifyContent:'center',alignItems:'center',backgroundColor: theme === "dark" ? "#000" : "#fff"}}>
           <ActivityIndicator size="large" color="#7734eb" />
         </View>
       );
@@ -221,23 +275,31 @@ const moreServices = [
   <StatusBar translucent barStyle={theme === "dark" ? "light-content" : "dark-content"} backgroundColor="transparent" />
     <View style={{justifyContent:"space-between",flexDirection:'row',alignItems:'center'}}>
       <View style={{flexDirection:'row',alignItems:'center'}}>
-      <Image source={require("../../../images/Profilepic.png")} resizeMethod="contain" style={{width:40,height:40,marginRight:10,marginLeft:8,borderRadius:10}}/>
+      <Image source={require("../../../images/avatar.jpg")} resizeMethod="contain" style={{width:40,height:40,marginRight:10,marginLeft:8,borderRadius:10}}/>
 <View>
-  <Text  style={ { color: theme === "dark" ? "#fff" : "#000" }}>{profile !=null ? profile.sFname + profile.sLname : '' }</Text>
+  <Text  style={ { color: theme === "dark" ? "#fff" : "#000" }}><Text>{profile ? `${profile.sFname || ''} ${profile.sLname || ''}` : '' }</Text>
+  </Text>
   <View style={{flexDirection:'row',alignItems:'center'}}>
   <Text style={ { color: theme === "dark" ? "#fff" : "#000" }}>Welcome Back</Text>
-  <Image source={require("../../../images/clapp.jpg")} resizeMethod="contain" style={{width:28,height:20,marginLeft:5}}/>
+  {theme === "dark" ? (
+ <Image source={require("../../../images/clap2.jpg")} resizeMethod="contain" style={{width:28,height:20,marginLeft:5}}/>
+  ) : (
+    <Image source={require("../../../images/clap.jpeg")} resizeMethod="contain" style={{width:28,height:20,marginLeft:5}}/>
+  )
+
+  }
+ 
   </View>
   
 </View>
       </View>
   <View>
-  <TouchableOpacity onPress={""}  style={{justifyContent:'flex-end',marginRight:'4%'}}>
+  <TouchableOpacity onPress={() => {router.push("Dashboard/Notifications");}}  style={{justifyContent:'flex-end',marginRight:'4%'}}>
     <Ionicons name="notifications" size={24} color={theme === "dark" ? "#fff" : "#7734eb"}  />
    { 1 !=0 ?  (
     <Badge
             status="primary"
-            value={0}
+            value={1}
             containerStyle={{ position: 'absolute', top: -7, left: 18 }}
           />
    )
@@ -271,24 +333,29 @@ const moreServices = [
 <View style={{borderWidth:0.8,borderColor:'#fff',marginTop:10}}></View>
      
 <View>
-      <Text style={{ color: "#fff", marginTop: 5, fontWeight: "bold" }}>
-      {walletData[index]?.bank_name}
-      </Text>
-      <View style={{ flexDirection: "row", justifyContent: "space-between", marginVertical:8  }}>
-        <Text style={{ color: "#fff", fontSize: 18, fontWeight: "bold" }}>
-        {walletData[index].account_no}
-        </Text>
-        <TouchableOpacity onPress={copyToClipboard}>
-          <Feather name="copy" size={24} color="white" />
-        </TouchableOpacity>
-      </View>
-      <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-        <Text style={{ color: "#fff", fontWeight: "bold" }}>{walletData[index].charges}</Text>
-        <TouchableOpacity onPress={toggleAccount}>
-          <Ionicons name="chevron-forward" size={24} color={theme === "dark" ? "#fff" : "#7734eb"}  />
-        </TouchableOpacity>
-      </View>
-    </View>
+  <Text style={{ color: "#fff", marginTop: 5, fontWeight: "bold" }}>
+    {walletData && walletData[index] ? walletData[index].bank_name : "N/A"}
+  </Text>
+
+  <View style={{ flexDirection: "row", justifyContent: "space-between", marginVertical: 8 }}>
+    <Text style={{ color: "#fff", fontSize: 18, fontWeight: "bold" }}>
+      {walletData && walletData[index] ? walletData[index].account_no : "N/A"}
+    </Text>
+    <TouchableOpacity onPress={copyToClipboard}>
+      <Feather name="copy" size={24} color="white" />
+    </TouchableOpacity>
+  </View>
+
+  <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+    <Text style={{ color: "#fff", fontWeight: "bold" }}>
+      {walletData && walletData[index] ? walletData[index].charges : "N/A"}
+    </Text>
+    <TouchableOpacity onPress={toggleAccount}>
+      <Ionicons name="chevron-forward" size={24} color={theme === "dark" ? "#fff" : "#7734eb"} />
+    </TouchableOpacity>
+  </View>
+</View>
+
 
 </View>
 
@@ -311,20 +378,20 @@ const moreServices = [
 width:'48%',
   height:50,justifyContent:'center',
   flexDirection:'row',alignItems:'center'}} onPress={() => {router.push("Dashboard/FundWallet");}}>
-<Ionicons name="add-circle-outline" size={24} color={theme === "dark" ? "#fff" : "#7734eb"} />
+<Ionicons name="add-circle-outline" size={24} color="#fff" />
 <Text style={{alignSelf:'center',color:'#fff'}}>Fund Wallet</Text>
 </TouchableOpacity>
 
 <TouchableOpacity style={{backgroundColor:"#7734eb",padding:10,borderRadius:10,width:'48%',height:50,
   justifyContent:'center',flexDirection:'row',alignItems:'center'}} onPress={() => {router.push("Dashboard/Referral");}}>
-<FontAwesome name="users" size={18} color={theme === "dark" ? "#fff" : "#7734eb"}  />
+<FontAwesome name="users" size={18} color="#fff"  />
 <Text style={{alignSelf:'center',color:'#fff',marginLeft:3}}>Referral</Text>
 </TouchableOpacity>
 
 
 </View>
 
- <View style={{padding: 15, borderRadius: 15 ,marginTop:20}}>
+ <View style={{padding: 15, borderRadius: 15 ,marginTop:20,zIndex: 1}}>
       <Text style={[styles.headerText, { color: theme === "dark" ? "#fff" : "#7734eb" }]}>Our Services</Text>
 
       <FlatList
@@ -350,30 +417,28 @@ width:'48%',
 
       {/* Modal for More Services */}
       <Modal animationType="slide" transparent={true} visible={modalVisible}>
-        <View style={styles.modalContainer}>
-          <View style={[styles.modalContent, { backgroundColor: theme === "dark" ? "#000" : "#fff" }]}>
-            <Text style={[styles.modalHeader, { color: theme === "dark" ? "#fff" : "#000" }]}>What would you like to do today?</Text>
-
-            <FlatList
-              data={moreServices}
-              numColumns={2}
-              keyExtractor={(item) => item.id.toString()}
-              renderItem={({ item }) => (
-                <TouchableOpacity style={styles.modalButton}       onPress={() => {
-                    router.push(item.route);
-                }}>
-                  {item.icon}
-                  <Text style={[styles.modalText, { color: theme === "dark" ? "#7734eb" : "#000" }]}>{item.name}</Text>
-                </TouchableOpacity>
-              )}
-            />
-
-            <TouchableOpacity style={styles.closeButton} onPress={() => setModalVisible(false)}>
-              <Text style={styles.closeText}>Close</Text>
+  <TouchableWithoutFeedback onPress={() => setModalVisible(false)}>
+    <View style={styles.modalContainer}>
+      <View style={[styles.modalContent, { backgroundColor: theme === "dark" ? "#000" : "#fff" }]}>
+        {/* Modal Content */}
+        <FlatList
+          data={moreServices}
+          numColumns={2}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={({ item }) => (
+            <TouchableOpacity style={styles.modalButton} onPress={() => router.push(item.route)}>
+              {item.icon}
+              <Text style={[styles.modalText, { color: theme === "dark" ? "#7734eb" : "#000" }]}>{item.name}</Text>
             </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
+          )}
+        />
+        <TouchableOpacity style={styles.closeButton} onPress={() => setModalVisible(false)}>
+          <Text style={styles.closeText}>Close</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  </TouchableWithoutFeedback>
+</Modal>
     </View>
 
     </View>
@@ -395,6 +460,17 @@ const styles = StyleSheet.create({
   modalText: { fontSize: 14, fontWeight: "bold", color: "black", marginTop: 5 },
   closeButton: { marginTop: 15, padding: 10, backgroundColor: "#d9534f", borderRadius: 10 },
   closeText: { color: "white", fontWeight: "bold" },
+  noConnectionContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+  },
+  noConnectionText: {
+    fontSize: 18,
+    marginTop: 20,
+    textAlign: 'center',
+  },
 });
 
 
