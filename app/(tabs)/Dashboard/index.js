@@ -21,7 +21,7 @@ const index = () => {
     const [loading, setLoading] = useState(true);
     const [walletData, setWalletData] = useState(null);
   const router = useRouter(); // Initialize the router
-    const [userId, setUserId] = useState("1");
+    const [userId, setUserId] = useState();
       const { theme, toggleTheme } = useContext(ThemeContext);
   // Define two sets of data
   
@@ -53,8 +53,8 @@ const index = () => {
         } catch (e) {
           console.error("Error parsing JSON:", e);
         }
-        
-        console.log("Raw API Response:", json);
+       
+        setUserId(json.sId);
     // Save the raw API response in AsyncStorage
     if (json) {
       await AsyncStorage.setItem('rawApiResponse', JSON.stringify(json));
@@ -90,7 +90,6 @@ const index = () => {
     }, []); // Empty dependency array to run this effect once on mount
   
 
-  
   useEffect(() => {
     const fetchWalletDetails = async () => {
    
@@ -137,35 +136,7 @@ const index = () => {
   }, [userId]); // Re-fetch when userId changes
 
   
-  useEffect(() => {
-    const loadAndFetchProfile = async () => {
-      try {
-
-        const token = await AsyncStorage.getItem("token");
-        if (!token) {
-          Alert.alert("Error", "No access token found");
-          return;
-        }
-
-        const rawApiResponse = await AsyncStorage.getItem("rawApiResponse");
-        if (rawApiResponse) {
-          try {
-            const parsedResponse = JSON.parse(rawApiResponse);
-            if (parsedResponse && parsedResponse.sId) {
-              setUserId(parsedResponse.sId);
-            }
-          } catch (e) {
-            console.error("Error parsing rawApiResponse:", e);
-          }
-        }
-      } catch (error) {
-        console.error("Error loading profile:", error);
-        Alert.alert("Error", "An error occurred while fetching transactions");
-      }
-    };
   
-    loadAndFetchProfile();
-  }, []);
 
   // Copy account number to clipboard
   const copyToClipboard = () => {
@@ -351,7 +322,7 @@ const moreServices = [
       {walletData && walletData[index] ? walletData[index].charges : "N/A"}
     </Text>
     <TouchableOpacity onPress={toggleAccount}>
-      <Ionicons name="chevron-forward" size={24} color={theme === "dark" ? "#fff" : "#7734eb"} />
+      <Ionicons name="chevron-forward" size={24} color={theme === "dark" ? "#fff" : "#fff"} />
     </TouchableOpacity>
   </View>
 </View>

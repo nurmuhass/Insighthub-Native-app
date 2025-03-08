@@ -20,7 +20,7 @@ const FundWallet = () => {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [walletData, setWalletData] = useState(null);
-  const [userId, setUserId] = useState("1");
+  const [userId, setUserId] = useState();
     const { theme, toggleTheme } = useContext(ThemeContext);
   useEffect(() => {
     const loadAndFetchProfile = async () => {
@@ -41,8 +41,8 @@ const FundWallet = () => {
           console.log("rawApiResponse not found in storage.");
         }
       } catch (error) {
-        console.error("Error loading profile:", error);
-        Alert.alert("Error", "An error occurred while fetching transactions");
+        // console.error("Error loading profile:", error);
+        // Alert.alert("Error", "An error occurred while fetching transactions");
       }
     };
   
@@ -85,8 +85,8 @@ const FundWallet = () => {
           Alert.alert("Error", result.msg || "Failed to load data.");
         }
       } catch (error) {
-        console.error("Error fetching wallet details:", error);
-        Alert.alert("Error", "An error occurred while fetching wallet details.");
+        // console.error("Error fetching wallet details:", error);
+        // Alert.alert("Error", "An error occurred while fetching wallet details.");
       } finally {
         setLoading(false);
       }
@@ -101,6 +101,15 @@ const FundWallet = () => {
     Clipboard.setString(accountNumber);
     Alert.alert("Copied", "Account number copied to clipboard.");
   };
+
+
+    if (loading) {
+      return (
+        <View style={{flex:1,justifyContent:'center',alignItems:'center',backgroundColor: theme === "dark" ? "#000" : "#fff"}}>
+          <ActivityIndicator size="large" color="#7734eb" />
+        </View>
+      );
+    }
 
   return (
     <View style={[styles.container, theme === "dark" ? styles.darkContainer : styles.lightContainer]}>
