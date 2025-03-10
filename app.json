@@ -2,7 +2,7 @@
   "expo": {
     "name": "InsightHub",
     "slug": "InsightHub",
-    "version": "1.0.0",
+    "version": "2.1.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",
@@ -16,7 +16,8 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.nurmuhass2.InsightHub"
+      "package": "com.InsightHub.app",
+      "versionCode": 1.0
     },
     "web": {
       "bundler": "metro",
