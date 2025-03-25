@@ -6,8 +6,8 @@ import { Ionicons } from '@expo/vector-icons'; // For the back icon
 import { getStatusBarHeight } from 'react-native-status-bar-height';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
-import logo from '../../../../assets/logo.png';
-import { ThemeContext } from '../../../../ThemeContext';
+import logo from '../../../assets/logo.png';
+import { ThemeContext } from '../../../ThemeContext';
 
 
 export default function ElectricityDetailScreen() {
@@ -46,11 +46,11 @@ console.log(transactionData)
             <div class="details">
               <div class="detail-row">
                 <span class="label">Transaction ID:</span>
-                <span class="value">${transactionData.response.orderId}</span>
+                <span class="value">${transactionData.orderId}</span>
               </div>
               <div class="detail-row">
                 <span class="label">Status:</span>
-               <span class="value status">${transactionData.response.status === 'success' ? 'Success' : 'Failed'}</span>
+               <span class="value status">${transactionData.status === '0' ? 'Success' : 'Failed'}</span>
               </div>
       
          <div class="detail-row">
@@ -60,17 +60,17 @@ console.log(transactionData)
 
             <div class="detail-row">
                 <span class="label">Customer:</span>
-                <span class="value">${transactionData.response.name}</span>
+                <span class="value">${transactionData.customerName}</span>
               </div>
 
               <div class="detail-row">
                 <span class="label">Address:</span>
-                <span class="value">${transactionData.response.address}</span>
+                <span class="value">${transactionData.customerAddress}</span>
               </div>
      
             <div class="detail-row">
                 <span class="label">Token:</span>
-                <span class="value">${transactionData.response.unit_token}</span>
+                <span class="value">${transactionData.unitToken}</span>
             </div>
         
               <div class="detail-row">
@@ -128,8 +128,8 @@ console.log(transactionData)
         {/* Transaction Summary */}
         <View style={styles.summaryContainer}>
           <View style={styles.providerLogoContainer}>
-          <Image source={require("../../../../images/electLogo.jpg")} style={styles.providerLogo} />
-            <Image source={require("../../../../images/logo.png")} style={styles.providerLogo} />
+          <Image source={require("../../../images/electLogo.jpg")} style={styles.providerLogo} />
+            <Image source={require("../../../images/logo.png")} style={styles.providerLogo} />
           </View>
       
         <Text style={styles.summaryText}>
@@ -142,26 +142,26 @@ console.log(transactionData)
           <Text style={[styles.sectionTitle, { color: theme === "dark" ? "#fff" : "#000" }]}>Transaction Information</Text>
           <View style={styles.detailRow}>
             <Text style={[styles.detailLabel, { color: theme === "dark" ? "#fff" : "#000" }]}>Transaction ID:</Text>
-            <Text style={[styles.detailValue, { color: theme === "dark" ? "#fff" : "#000" }]}>{transactionData.response.orderId}</Text>
+            <Text style={[styles.detailValue, { color: theme === "dark" ? "#fff" : "#000" }]}>{transactionData.orderId}</Text>
           </View>
               <View style={styles.detailRow}>
                 <Text style={[styles.detailLabel, { color: theme === "dark" ? "#fff" : "#000" }]}>Status:</Text>
-                <Text style={[styles.detailValue, { color: transactionData.response.status === 'success' ? 'green' : 'red' }]}>
-                  {transactionData.response.status === 'success' ? 'Success' : 'Failed'}
+                <Text style={[styles.detailValue, { color: transactionData.status === '0' ? 'green' : 'red' }]}>
+                  {transactionData.status === '0' ? 'Success' : 'Failed'}
                 </Text>
               </View>
 
           <View style={styles.detailRow}>
             <Text style={[styles.detailLabel, { color: theme === "dark" ? "#fff" : "#000" }]}>Description:</Text>
-            <Text style={{width:'70%',marginLeft:25,marginRight:5,color: theme === "dark" ? "#fff" : "#000" }} numberOfLines={4}>Purchase of Electricity Token </Text>
+            <Text style={{width:'70%',marginLeft:25,marginRight:5,color: theme === "dark" ? "#fff" : "#000" }} numberOfLines={4}>{transactionData.servicedesc} </Text>
           </View>
           <View style={styles.detailRow}>
             <Text style={[styles.detailLabel, { color: theme === "dark" ? "#fff" : "#000" }]}>Customer:</Text>
-            <Text style={[styles.detailValue , { color: theme === "dark" ? "#fff" : "#000" }]}numberOfLines={3}>{transactionData.response.name}</Text>
+            <Text style={[styles.detailValue , { color: theme === "dark" ? "#fff" : "#000" }]}numberOfLines={3}>{transactionData.customerName}</Text>
           </View>
           <View style={styles.detailRow}>
             <Text style={[styles.detailLabel, { color: theme === "dark" ? "#fff" : "#000" }]}>Token:</Text>
-            <Text style={[styles.detailValue, { color: theme === "dark" ? "#fff" : "#000" }]}>{transactionData.response.unit_token}</Text>
+            <Text style={[styles.detailValue, { color: theme === "dark" ? "#fff" : "#000" }]}>{transactionData.unitToken}</Text>
           </View>
           <View style={styles.detailRow}>
             <Text style={[styles.detailLabel, { color: theme === "dark" ? "#fff" : "#000" }]}>Amount:</Text>

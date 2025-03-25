@@ -58,6 +58,8 @@ const TransactionsScreen = () => {
       if (!token) {
         Alert.alert("Error", "No access token found");
         return;
+      }else{
+        console.log("token found:" + token)
       }
       
       const rawApiResponse = await AsyncStorage.getItem("rawApiResponse");
@@ -183,9 +185,14 @@ const TransactionsScreen = () => {
         pathname: "/Transaction/transaction-detail",
         params: { transaction: JSON.stringify(item) }
       });
-    } else {
-      // Optionally, you can do nothing or show an alert/message.
+    } else if (item.servicename === "Electricity Bill") {
+      router.push({
+        pathname: "/Transaction/electricity-detail",
+        params: { transaction: JSON.stringify(item) }
+      })
       
+    }else{
+// Optionally, you can do nothing or show an alert/message.
     }
   }}
 >

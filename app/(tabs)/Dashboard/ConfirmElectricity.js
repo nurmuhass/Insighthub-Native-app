@@ -85,9 +85,9 @@ const ConfirmElectricity = () => {
       const resJson = await response.json();
       console.log("Purchase Electricity Response:", resJson);
       if (resJson.status === "success") {
-        Alert.alert("Success", "Purchase successful. " + (resJson.msg ? "Unit Token: " + resJson.msg : ""));
+        Alert.alert("Success", "Purchase successful. ");
        
-        const combinedData = {...JSON.parse(verificationData),Token:resJson.msg, date: new Date().toDateString()};
+        const combinedData = {...JSON.parse(verificationData),response:resJson, date: new Date().toDateString()};
    
         router.replace({
           pathname: "Dashboard/receipts/ElectricityReceipt",
