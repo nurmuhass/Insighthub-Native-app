@@ -56,7 +56,7 @@ const [loading, setLoading] = useState(false);
       return;
     }
 
-    // Create FormData (as your backend expects form data)
+    // Create FormData 
     const formData = new FormData();
     formData.append("fname", firstName);
     formData.append("lname", lastName);
