@@ -61,10 +61,7 @@ export default function TransactionDetailScreen() {
                 <span class="label">Description:</span>
                 <span class="value">${transactionData.cabledetails}</span>
               </div>
-            <div class="detail-row">
-                <span class="label">Token:</span>
-                <span class="value">${transactionData.Token}</span>
-            </div>
+       
                  <div class="detail-row">
                 <span class="label">Customer:</span>
                 <span class="value">${transactionData.Customer_Name}</span>
@@ -123,7 +120,7 @@ export default function TransactionDetailScreen() {
         {/* Transaction Summary */}
         <View style={styles.summaryContainer}>
           <View style={styles.providerLogoContainer}>
-          <Image source={require("../../../../images/electLogo.jpg")} style={styles.providerLogo} />
+          <Image source={require("../../../../images/cableLogo.jpeg")} style={styles.providerLogo} />
             <Image source={require("../../../../images/logo.png")} style={styles.providerLogo} />
           </View>
       
@@ -160,10 +157,6 @@ export default function TransactionDetailScreen() {
           <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>Customer:</Text>
             <Text style={styles.detailValue } numberOfLines={3}>{transactionData.Customer_Name}</Text>
-          </View>
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Token:</Text>
-            <Text style={styles.detailValue}>{transactionData.Token}</Text>
           </View>
           <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>Amount:</Text>

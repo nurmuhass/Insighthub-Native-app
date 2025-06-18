@@ -144,6 +144,8 @@ const ElectricityScreen = () => {
         // Alert.alert("Success", "Meter verification successful");
         // Navigate to next step if needed
         const combinedData = { ...payload, Customer_Name: resJson.Customer_Name };
+        console.log("Combined Data for Receipt:", combinedData);
+
         router.push({
           pathname: 'Dashboard/ConfirmElectricity',
           params: { verificationData: JSON.stringify(combinedData) }

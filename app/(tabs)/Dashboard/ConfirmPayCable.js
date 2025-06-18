@@ -30,6 +30,23 @@ const ConfirmPayCable = () => {
   } catch (error) {
     console.error("Error parsing verification data:", error);
   }
+
+  
+  // Destructure payload fields that were passed from the previous screen.
+  // These are the fields you built in your previous page's payload.
+  const {
+    provider,         // Provider id
+    providerName,
+    cableplan,        // Cable plan id
+    phone,            // Customer phone number
+    Customer_Name, // Customer Name
+    iucnumber,
+    subtype,         // Subscription Type ("change" or "renew")
+    amounttopay,     
+    cabledetails // Cable plan details (e.g. plan description)
+  } = data;
+
+   
   
   const [loading, setLoading] = useState(false);
 
@@ -38,18 +55,18 @@ const ConfirmPayCable = () => {
     const transRef = "CABLEPUR" + Date.now();
     
     // Build the payload for the purchase request.
-    // Adjust field names as needed to match your backend.
+   
     const payload = {
-      provider: data.provider,           // Cable Provider ID
-      cableplan: data.cableplan,         // Cable Plan ID
-      iucnumber: data.iucnumber,         // IUC Number
-      phone: data.phone,                 // Customer Phone Number
-      subtype: data.subtype,             // Subscription Type ("change" or "renew")
-      amounttopay: data.amounttopay,     // Amount To Pay (as displayed)
-      cabledetails: data.cabledetails,   // Cable plan details (e.g. plan description)
+      provider: provider,           // Cable Provider ID
+      cableplan: cableplan,         // Cable Plan ID
+      iucnumber: iucnumber,         // IUC Number
+      phone: phone,                 // Customer Phone Number
+      subtype: subtype,             // Subscription Type ("change" or "renew")
+      amount: amounttopay,         // Amount To Pay (as displayed)
+      cabledetails: cabledetails,   // Cable plan details (e.g. plan description)
       ref: transRef                      // New Transaction Reference
     };
-
+console.log("Payload for cable purchase:", payload);
     setLoading(true);
     try {
       const token = await AsyncStorage.getItem("token");
@@ -71,10 +88,16 @@ const ConfirmPayCable = () => {
       
       const resJson = await response.json();
       console.log("Cable Purchase Response:", resJson);
+            
+        const combinedData = {...JSON.parse(verificationData),response:resJson, date: new Date().toDateString()};
+
       if (resJson.status === "success") {
-        Alert.alert("Success", "Purchase successful. " + (resJson.msg ? "Cable Token: " + resJson.msg : ""));
-        // Optionally navigate to a dashboard or success page:
-        // router.push('/Dashboard');
+        Alert.alert("Success", "Purchase successful. ");
+        
+          router.replace({
+      pathname: "Dashboard/receipts/CableReceipt",
+      params: { transaction: JSON.stringify(combinedData) }
+    });
       } else {
         Alert.alert("Error", resJson.msg || "Purchase failed.");
       }
@@ -98,15 +121,9 @@ const ConfirmPayCable = () => {
   // When user taps Buy Data, instead of directly calling handleBuyData, show modal.
  
   const onBuyCablePress = () => {
-   
-    const combinedData = {...JSON.parse(verificationData),Token:'fyuut67676776', date: new Date().toDateString()};
-   
-    router.replace({
-      pathname: "Dashboard/receipts/CableReceipt",
-      params: { transaction: JSON.stringify(combinedData) }
-    });
 
-    // setReauthVisible(true);
+
+    setReauthVisible(true);
 
   };
 

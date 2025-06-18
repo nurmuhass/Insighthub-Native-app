@@ -94,7 +94,7 @@ const TransactionsScreen = () => {
         if (json.status === "success") {
           setTransactions(json.transactions || []);
           setLoading(false);
-          
+          console.log("Transactions loaded successfully:", json.transactions);
           const services = [...new Set((json.transactions || []).map(tx => tx.servicename))];
           if (services.length > 0) {
             setSelectedService(services[0]);
@@ -191,8 +191,13 @@ const TransactionsScreen = () => {
         params: { transaction: JSON.stringify(item) }
       })
       
-    }else{
-// Optionally, you can do nothing or show an alert/message.
+    // }else if (item.servicename === "Cable TV") {
+    //   router.push({
+    //     pathname: "/Dashboard/receipts/CableReceipt",
+    //     params: { transaction: JSON.stringify(item) }
+    //   });
+    // }else{
+
     }
   }}
 >
@@ -213,6 +218,10 @@ const TransactionsScreen = () => {
   <Image source={require("../../../images/electLogo.jpg")} style={styles.providerLogo} /> :
   ''
 }
+{ item.servicename === 'Cable TV' ?
+  <Image source={require("../../../images/cableLogo.jpeg")} style={styles.providerLogo} /> :
+  ''
+}
 
                 <View style={{ marginLeft: 10 }}>
     <Text style={{ fontWeight: "bold",alignSelf:'flex-start',color: theme === "dark" ? "#fff" : "#000" }}> { item.servicedesc && item.servicedesc.toUpperCase().includes('AIRTEL') && (
@@ -229,6 +238,9 @@ const TransactionsScreen = () => {
 )}
 { item.servicename === 'Electricity Bill' ?  
 'Electricity Bill' : item.servicename === 'Wallet Credit' ? 'Wallet Credit' : ''
+}
+{ item.servicename === 'Cable TV' ?  
+'Cable TV' : item.servicename === 'Wallet Credit' ? 'Wallet Credit' : ''
 }
 </Text>
                   <Text style={{color: theme === "dark" ? "#fff" : "#000"}}>{item.date}</Text>

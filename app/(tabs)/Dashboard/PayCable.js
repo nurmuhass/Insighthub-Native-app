@@ -95,7 +95,7 @@ const BuyCable = () => {
     const plan = filteredPlans.find(p => p.cpId == planId);
     if (plan) {
       // Update the price (assumes plan.price holds the price)
-      setAmountToPay("N" + plan.price);
+      setAmountToPay( plan.price);
       // Update cable details (for example, plan name with day info)
       setCableDetails(`${plan.name} (${plan.day} Days)`);
     } else {
@@ -297,7 +297,7 @@ const BuyCable = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff", padding: 20 ,paddingTop:getStatusBarHeight()},
+  container: { flex: 1, backgroundColor: "#fff", padding: 20 ,paddingTop:getStatusBarHeight(),paddingBottom: 40},
   lightContainer: { backgroundColor: "#fff" },
   darkContainer: { backgroundColor: "#121212" },
   header: { fontSize: 24, fontWeight: "bold", textAlign: "center", marginLeft: 10, color: "#7734eb" },
