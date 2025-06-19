@@ -1,17 +1,16 @@
 {
+  "cli": {
+    "version": ">=3.0.0"
+  },
   "build": {
     "production": {
       "android": {
-        "buildType": "app-bundle",
-        "buildCommand": "npm install --legacy-peer-deps && expo prebuild && expo run:android"
+        "buildType": "app-bundle"
       },
-      "ios": {}
-    },
-    "preview": {
-      "android": {
-        "buildType": "apk"
-      },
-      "ios": {}
+      "ios": {},
+      "hooks": {
+        "pre-install": "eas-build-pre-install.sh"
+      }
     }
   }
 }
