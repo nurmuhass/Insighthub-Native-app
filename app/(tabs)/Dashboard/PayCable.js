@@ -305,7 +305,7 @@ const styles = StyleSheet.create({
   pickerContainer: { borderWidth: 1, borderColor: "#ccc", borderRadius: 8, marginBottom: 15 },
   picker: { height: 50, width: "100%" },
   input: { borderWidth: 1, borderColor: "#ccc", borderRadius: 8, padding: 12, marginBottom: 15, fontSize: 16 },
-  button: { backgroundColor: "#7734eb", padding: 15, borderRadius: 8, alignItems: "center", marginTop: 10 },
+  button: { backgroundColor: "#7734eb", padding: 15, borderRadius: 8, alignItems: "center", marginTop: 10,marginBottom:60 },
   buttonText: { color: "#fff", fontSize: 16, fontWeight: "bold" }
 });
 

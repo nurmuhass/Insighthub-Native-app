@@ -13,6 +13,7 @@ export default function TransactionDetailScreen() {
     const { transaction } = useLocalSearchParams();
     const transactionData = transaction ? JSON.parse(transaction) : null;
     const logoURI = Image.resolveAssetSource(logo).uri;
+    const router = useRouter();
 
   // Function to generate PDF and share it
   const handleShare = async () => {
