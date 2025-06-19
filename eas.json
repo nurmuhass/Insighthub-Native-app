@@ -2,7 +2,8 @@
   "build": {
     "production": {
       "android": {
-        "buildType": "app-bundle"
+        "buildType": "app-bundle",
+        "buildCommand": "npm install --legacy-peer-deps && expo prebuild && expo run:android"
       },
       "ios": {}
     },
